@@ -11,7 +11,7 @@
       },
       "config": {
         "iteration_type" : "per-vu-iteration",
-        "type": "smoke_test",
+        "type": "smoke",
         "vus": "20",
         "iterations" : "20",
         "maxDuration": "30s"
