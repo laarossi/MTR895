@@ -1,0 +1,20 @@
+[
+    {
+      "testType" : "api",
+      "host" : "localhost:0111",
+      "method" : "GET",
+      "authentication" : "xxxxx",
+      "header-x-object-id" : 1842,
+      "payload" : {
+        "type" : "application/json",
+        "data" : "C:\\Users\\Admin\\IdeaProjects\\MTR895\\test-data\\api-testing\\requests\\requests-api-1"
+      },
+      "config": {
+        "iteration_type" : "per-vu-iteration",
+        "type": "smoke_test",
+        "vus": "20",
+        "iterations" : "20",
+        "maxDuration": "30s"
+      }
+    }
+]
