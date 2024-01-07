@@ -1,11 +1,11 @@
-package com.projet.mtr895.engine;
+package com.projet.mtr895.engine.reporter;
 
 
 public class ReportGenerator {
 
     private static ReportGenerator instance = null;
 
-    private ReportGenerator(){
+    ReportGenerator(){
     }
 
     public static ReportGenerator getInstance() {

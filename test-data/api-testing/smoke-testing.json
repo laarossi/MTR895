@@ -1,12 +1,22 @@
 [
   {
+    "type" : "api",
     "request": {
+      "url" : "localhost:8989",
       "host" : "localhost:0111",
-      "method" : "GET"
-    },
-    "payload" : {
-      "type" : "application/json",
-      "data" : "C:\\Users\\Admin\\IdeaProjects\\MTR895\\test-data\\api-testing\\requests\\requests-api-1"
+      "method" : "GET",
+      "contentType" : "application/json",
+      "contentLength" : 40000,
+      "cacheControl" : "XXX",
+      "userAgent" : "user-agent",
+      "payload" : "C:\\Users\\Admin\\IdeaProjects\\MTR895\\test-data\\api-testing\\requests\\requests-api-1",
+      "authorization" : "XXX",
+      "headers" : [
+        {
+          "name" : "Header-Name",
+          "content" : "XXX"
+        }
+      ]
     },
     "exec" : [
       {
@@ -14,7 +24,7 @@
         "type": "smoke",
         "vus": "20",
         "iterations" : "20",
-        "maxDuration": "30s"
+        "maxDuration": "30"
       }
     ]
   }
