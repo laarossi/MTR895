@@ -1,6 +1,5 @@
 [
   {
-    "type" : "api",
     "request": {
       "url" : "localhost:8989",
       "host" : "localhost:0111",
@@ -20,8 +19,8 @@
     },
     "exec" : [
       {
+        "type" : "api.smoke",
         "iteration_type" : "per-vu-iteration",
-        "type": "smoke",
         "vus": "20",
         "iterations" : "20",
         "maxDuration": "30"

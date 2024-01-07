@@ -6,6 +6,7 @@ import com.projet.mtr895.engine.TestLoader;
 import com.projet.mtr895.engine.executor.Executor;
 import com.projet.mtr895.entities.TestCase;
 import com.projet.mtr895.entities.TestSuite;
+import com.projet.mtr895.entities.exec.ExecConfig;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -31,6 +32,7 @@ public class Mtr895Application implements CommandLineRunner {
         for (TestSuite testSuite : testSuites){
             for(TestCase testCase : testSuite.getTestCases()){
                 Executor executor = TestExecutor.parseExecutor(testCase);
+                ExecConfig execConfig =
                 executor.run();
             }
         }

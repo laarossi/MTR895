@@ -1,13 +1,14 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-const vus = __ENV.VUS || 5
-const duration = __ENV.DURATION || '1m'
-const method = __ENV.METHOD || 'GET';
-const payload = __ENV.PAYLOAD || '';
-const contentType = __ENV.CONTENT_TYPE || 'application/json';
-const additionalHeaders = __ENV.HEADERS ? JSON.parse(__ENV.HEADERS) : {};
-const url = __ENV.HOST || '';
+const envVars = JSON.parse(__ENV.ENV_VARS || '{}');
+// Extract values from the configuration
+const vus = envVars.vus || 5;
+const duration = envVars.duration || '5s';
+const method = envVars.method || 'GET';
+const payload = envVars.payload || '';
+const contentType = envVars.contentType || 'application/json';
+const headers = envVars.headers || {};
 
 export const options = {
     vus: vus,
