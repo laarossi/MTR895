@@ -17,14 +17,14 @@
         }
       ]
     },
-    "exec" : [
+    "exec" :
       {
         "type" : "api.smoke",
         "iteration_type" : "per-vu-iteration",
         "vus": "20",
         "iterations" : "20",
-        "maxDuration": "30"
+        "maxDuration": "30",
+        "output" : "html"
       }
-    ]
   }
 ]

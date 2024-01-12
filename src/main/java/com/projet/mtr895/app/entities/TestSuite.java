@@ -1,4 +1,4 @@
-package com.projet.mtr895.entities;
+package com.projet.mtr895.app.entities;
 
 import lombok.Getter;
 import java.util.HashSet;
