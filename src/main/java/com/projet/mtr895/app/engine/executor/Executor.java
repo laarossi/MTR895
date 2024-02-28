@@ -8,8 +8,7 @@ import java.io.InputStream;
 
 public interface Executor {
 
-
-    default InputStream run(TestCase testCase) throws IOException {
+    default InputStream run(TestCase testCase) throws Exception {
         return null;
     }
 

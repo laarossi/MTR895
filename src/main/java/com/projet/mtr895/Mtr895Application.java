@@ -1,7 +1,7 @@
 package com.projet.mtr895;
 
 import ch.qos.logback.classic.Logger;
-import com.projet.mtr895.app.engine.TestExecutor;
+import com.projet.mtr895.app.TestExecutor;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,7 +20,7 @@ public class Mtr895Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        TestExecutor.runTests("/home/youssef-laarossi/Documents/edunos/MTR895/test-data/api-testing");
+        TestExecutor.runTests("/home/youssef-laarossi/Documents/MTR895/test-data/api-testing/");
     }
 
 }

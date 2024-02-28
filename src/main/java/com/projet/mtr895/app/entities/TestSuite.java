@@ -1,9 +1,12 @@
 package com.projet.mtr895.app.entities;
 
 import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashSet;
 
 @Getter
+@Setter
 public class TestSuite {
 
     private final String dirName;

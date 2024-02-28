@@ -1,4 +1,4 @@
-package com.projet.mtr895.app.engine;
+package com.projet.mtr895.app;
 
 import ch.qos.logback.classic.Logger;
 import com.projet.mtr895.app.engine.executor.Executor;
@@ -30,10 +30,10 @@ public class TestExecutor {
             if(testSuite == null || testSuite.getTestCases() == null || testSuite.getTestCases().isEmpty()) continue;
             testSuite.getTestCases().
                     forEach(testCase -> {
-                        Map<String, Object> execConfigDataMap = testCase.getExecConfigDataMap();
                         try {
-                            testCase.setExecConfig(TestParser.parseExecConfig(execConfigDataMap));
-                        } catch (IOException e) {
+                            testCase.setExecConfig(TestParser.parseExecConfig(testCase));
+                        } catch (Exception e) {
+                            testCase.setExecConfig(null);
                             LOG.warn(e.getMessage());
                         }
                     });
@@ -54,12 +54,13 @@ public class TestExecutor {
             LOG.info("Executing TestSuite[" + testSuite.getTestSuiteName() + "] .......");
             for (TestCase testCase : testSuite.getTestCases()){
                 LOG.info("Creating Executor for TestCase#" + testCase.getId());
-                Executor testCaseExecutor = TestParser.parseExecutor(testCase);
-                if(testCaseExecutor == null){
-                    LOG.warn("Error while creating Executor for the TestCase#" + testCase.getId());
-                    continue;
+                try {
+                    Executor testCaseExecutor = TestParser.parseExecutor(testCase);
+                    InputStream inputStream = testCaseExecutor.run(testCase);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    LOG.error("Skipping the execution of the TestCase#" + testCase.getId());
                 }
-                InputStream inputStream = testCaseExecutor.run(testCase);
             }
         }
     }

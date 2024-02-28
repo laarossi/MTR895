@@ -1,19 +1,21 @@
 package com.projet.mtr895.app.engine.parser;
 
+import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.ExecConfig;
+import com.projet.mtr895.app.entities.exec.K6ExecConfig;
 
 import java.util.Map;
 
 public interface ExecConfigurationParser {
-    ExecConfig parse(Map<String, Object> execDataMap);
 
-    void setDefaults();
+    void setDefaults(K6ExecConfig k6ExecConfig);
+    void setConfig(TestCase testCase, K6ExecConfig k6ExecConfig) throws Exception;
 
-    default Map<String, String> parseK6Options(Map<String, Object> execDataMap){
-        return null;
+    default ExecConfig parse(TestCase testCase) throws Exception {
+        K6ExecConfig k6ExecConfig = new K6ExecConfig();
+        setConfig(testCase, k6ExecConfig);
+        setDefaults(k6ExecConfig);
+        return k6ExecConfig;
     }
 
-    default Map<String, String> parseK6EnvironmentVariables(Map<String, Object> execDataMap){
-        return null;
-    }
 }

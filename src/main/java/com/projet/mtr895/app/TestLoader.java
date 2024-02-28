@@ -1,10 +1,9 @@
-package com.projet.mtr895.app.engine;
+package com.projet.mtr895.app;
 
 import ch.qos.logback.classic.Logger;
 import com.jayway.jsonpath.JsonPath;
 import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.TestSuite;
-import com.projet.mtr895.app.entities.api.APITestCase;
 import lombok.Getter;
 import org.slf4j.LoggerFactory;
 import java.io.File;
@@ -19,6 +18,7 @@ public class TestLoader {
 
     private static final Logger LOG = (Logger) LoggerFactory
             .getLogger(TestLoader.class);
+
 
     public static TestSuite loadTestSuite(String testSuiteJSONFile) throws Exception {
         File loadedTestSuiteFile = new File(testSuiteJSONFile);
@@ -40,38 +40,38 @@ public class TestLoader {
         }
         int i = 1;
         for (Map<String, Object> testCase : testCasesJSONObjects) {
-            String[] type;
             Map<String, Object> execConfigDataMap = (Map<String, Object>) testCase.get("exec");
+            LOG.info("Loading TestCase#" + i);
+            TestCase tc =  new TestCase();
+            tc.setId(i++);
+            tc.setName((String) testCase.getOrDefault("name", "TestCase#" + tc.getId()));
+            tc.setTestSuiteFile(testSuiteJSONFile.getAbsolutePath());
             try {
-                type = getTest(execConfigDataMap);
+                tc.setRequest(TestParser.parseRequest((Map<String, Object>) testCase.get("request")));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
+                LOG.error("Skipping TestCase#" + tc.getId());
                 continue;
             }
-            TestCase tc =  type[0].equals("api") ? apiTestCaseParse(testCase) : new TestCase();
-            tc.setId(i++);
-            tc.setExecConfigDataMap(execConfigDataMap);
-            testCases.add(tc);
+            tc.setExecConfigJSONMap(execConfigDataMap);
+            try {
+                if(!isTypeValid((String) execConfigDataMap.get("type")))
+                    throw new Exception("Type parameter required in the exec configuration");
+                tc.setType((String) execConfigDataMap.get("type"));
+                testCases.add(tc);
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOG.error("Skipping TestCase#" + tc.getId());
+            }
         }
         return testCases;
     }
 
-    private static APITestCase apiTestCaseParse(Map<String, Object> testCase){
-        APITestCase tc = new APITestCase();
-        LOG.info("Loading TestCase#" + tc.getId());
-        tc.setRequest(TestParser.parseRequest((Map<String, Object>) testCase.get("request")));
-        Map<String, Object> execDataMap = (Map<String, Object>) testCase.get("exec");
-        tc.setApiTestType(execDataMap.get("type").toString().toLowerCase());
-        return tc;
-    }
-
-    static String[] getTest(Map<String, Object> execDataMap) throws Exception {
-        String execType = (String) execDataMap.get("type");
+    static boolean isTypeValid(String execType) throws Exception {
         if (execType == null) throw new Exception("Exec configuration : must contain a type parameter");
         Pattern pattern = Pattern.compile("(?<type>[a-z]+).(?<test>[a-z]+)");
         Matcher matcher = pattern.matcher(execType.toLowerCase());
-        if(!matcher.matches()) throw new Exception("Exec configuration : type parameter is not correct");
-        return new String[]{matcher.group("type"), matcher.group("test")};
+        return matcher.matches();
     }
 
 

@@ -9,15 +9,9 @@ import java.util.HashMap;
 @Setter
 public class Request {
 
-    private String url;
+    private String path;
     private String host;
     private String method;
-    private String contentType;
-    private long contentLength;
-    private String cacheControl;
-    private String payload;
-    private String userAgent;
-    private String authorization;
     private HashMap<String, String> headers = new HashMap<>();
 
 }

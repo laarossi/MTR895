@@ -1,39 +1,63 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, fail } from 'k6';
 
-const envVars = JSON.parse(__ENV.ENV_VARS || '{}');
-// Extract values from the configuration
-const vus = envVars.vus || 5;
-const duration = envVars.duration || '5s';
-const method = envVars.method || 'GET';
-const payload = envVars.payload || '';
-const contentType = envVars.contentType || 'application/json';
-const headers = envVars.headers || {};
+const req_vars = JSON.parse(__ENV.request) || '{}';
+const response = JSON.parse(__ENV.response) || '{}';
+const host = req_vars.host;
+const path = req_vars.path;
+const method = req_vars.method;
+const payload = req_vars.payload;
+const headers = req_vars.headers || {};
+const output = __ENV.output;
+
+let statusError = false;
+let payloadError = false;
+let headersError = false;
 
 export const options = {
-    vus: vus,
-    duration: duration,
-};
+    thresholds: {
+        checks: ['rate>=1'],
+    },
+}
 
 export default function () {
-    additionalHeaders.push(contentType)
-    const params = {
-        headers: additionalHeaders
-    };
-    let response;
-    if (method.toUpperCase() === 'GET') {
-        response = http.get(url, params);
-    } else if (method.toUpperCase() === 'POST') {
-        response = http.post(url, payload, params);
-    } else if (method.toUpperCase() === 'PUT') {
-        response = http.put(url, payload, params);
-    } else if (method.toUpperCase() === 'DELETE') {
-        response = http.del(url, payload, params);
-    } else {
-        console.error(`Unsupported HTTP method: ${method}`);
-        return;
-    }
-    check(response, {
-        'is status 200': (r) => r.status === 200,
+    const res = http.request(method, host + "/" + path, payload, { headers });
+    check(res, {
+        'check http status' : (r) => {
+            if(r.status !== response.status){
+                if(!statusError){
+                    console.error(`Status Expected: ${response.status}, Actual: ${r.status}`);
+                    statusError = true
+                }
+            }
+            return r.status === response.status;
+        },
+        'check http payload' : (r) => {
+            if(!r.body.includes(response.payload))
+                if(!payloadError){
+                    console.error("Not matching payload");
+                    payloadError = true
+                }
+            return r.body.includes(response.payload);
+        },
+        'check http headers' : (r) => {
+            for (const [expectedHeader, expectedValue] of Object.entries(response.headers)) {
+                const actualValue = res.headers[expectedHeader];
+                if (actualValue === undefined) {
+                    if(!headersError){
+                        console.error(`${expectedHeader} not found in the response headers`);
+                        headersError = true
+                    }
+                    return false;
+                } else if (actualValue !== expectedValue) {
+                    if(!headersError){
+                        console.error(`${expectedHeader} has incorrect value. Expected: ${expectedValue}, Actual: ${actualValue}`);
+                        headersError = true
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
     });
 }
