@@ -1,6 +1,7 @@
 package com.projet.mtr895.app.engine.executor.api;
 
 import ch.qos.logback.classic.Logger;
+import com.jayway.jsonpath.JsonPath;
 import com.projet.mtr895.app.TestLoader;
 import com.projet.mtr895.app.TestParser;
 import com.projet.mtr895.app.engine.executor.Executor;
@@ -26,7 +27,6 @@ import java.util.*;
 @Getter
 public class K6TestExecutor implements Executor {
 
-    String outputFormat = "html";
     private static final Logger LOG = (Logger) LoggerFactory
             .getLogger(TestLoader.class);
 
@@ -38,6 +38,7 @@ public class K6TestExecutor implements Executor {
         K6ExecConfig k6ExecConfig = (K6ExecConfig) testCase.getExecConfig();
         String resultDir = testCase.getName().toLowerCase().replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
         initDirectories(resultDir);
+        testCase.setOutputDir(resultDir);
         List<String> shellCommands = getShellCommands(k6ExecConfig, resultDir);
         LOG.info(String.join(" ", shellCommands));
         Files.createFile(Path.of(resultDir + "/logs"));
@@ -47,10 +48,12 @@ public class K6TestExecutor implements Executor {
     }
 
     private void generateReport(TestCase testCase, String resultDir) throws Exception {
+        Map<String, Object> summaryJsonContent = JsonPath.read(Files.readString(Path.of(resultDir + "/summary.json")), "$");
+        testCase.setJsonExecutionResultsMap(summaryJsonContent);
         Files.createFile(Path.of(resultDir + "/report.html"));
         File htmlFile = new File(resultDir + "/report.html");
         Reporter reporter = TestParser.parseReporter(testCase);
-        reporter.report(htmlFile);
+        reporter.report(htmlFile, testCase);
     }
 
     private void initDirectories(String testCaseName) throws IOException {

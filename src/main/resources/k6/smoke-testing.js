@@ -22,6 +22,7 @@ export const options = {
 
 export default function () {
     const res = http.request(method, host + "/" + path, payload, { headers });
+    console.log("response : " + JSON.stringify(res))
     check(res, {
         'check http status' : (r) => {
             if(r.status !== response.status){

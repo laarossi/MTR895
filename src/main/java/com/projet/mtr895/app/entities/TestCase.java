@@ -14,7 +14,9 @@ public class TestCase {
     private String name;
     private String testSuiteFile;
     private String type;
+    private String outputDir;
     private Request request;
     private ExecConfig execConfig;
     private Map<String, Object> execConfigJSONMap;
+    private Map<String, Object> jsonExecutionResultsMap;
 }

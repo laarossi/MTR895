@@ -20,7 +20,7 @@ public class Mtr895Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        TestExecutor.runTests("/home/youssef-laarossi/Documents/MTR895/test-data/api-testing/");
+        TestExecutor.runTests("/home/yola/IdeaProjects/MTR895/test-data/api-testing");
     }
 
 }
