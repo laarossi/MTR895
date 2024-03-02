@@ -67,11 +67,26 @@ public class K6HTMLReporter implements Reporter {
                     })
                     .toList();
             printHttpMetrics(dataOutputStream, httpMetricsB, metrics);
+            printOtherMetrics(dataOutputStream, httpMetricsT, metrics);
             includeJS(dataOutputStream, metrics, httpMetricsB);
         }
 
         closeHTMLBody(dataOutputStream, testCase);
         closeHTMLFile(dataOutputStream, testCase);
+    }
+
+    private void printOtherMetrics(DataOutputStream dataOutputStream, List<String> httpMetrics, Map<String, Object> metrics) throws IOException {
+        dataOutputStream.write("<h1 class='title'>Other Metrics</h1>".getBytes());
+        for (String metric : httpMetrics) {
+            Map<String, Object> metricObj = (Map<String, Object>) metrics.get(metric);
+            if (metricObj == null || metricObj.isEmpty())
+                continue;
+            dataOutputStream.write(("<div class='metric'><h1>"+ metric +"</h1><table>").getBytes());
+            for(String key : metricObj.keySet()){
+                dataOutputStream.write(("<tr><td>" + key + "</td><td>" + metricObj.get(key)+ "</td></tr>").getBytes());
+            }
+            dataOutputStream.write("</table></div>".getBytes());
+        }
     }
 
     private void includeTestCaseHeader(DataOutputStream dataOutputStream, TestCase testCase) throws IOException {
@@ -272,6 +287,8 @@ public class K6HTMLReporter implements Reporter {
                 ".error{color:red;}" +
                 ".info{color:yellow;}" +
                 ".warn{color:pink;}" +
+                "table{margin-bottom: 50px;\n" +
+                "  width: 100%;}" +
                 "</style>").getBytes());
     }
 
