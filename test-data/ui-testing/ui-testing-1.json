@@ -1,0 +1,12 @@
+[
+  {
+    "name" : "UI Test Case 1",
+    "request" : {
+      "host": "https://api.publicapis.org",
+      "path": "entries",
+      "method": "get"
+    },
+    "exec" : [],
+    "expected" : []
+  }
+]

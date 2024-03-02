@@ -7,7 +7,6 @@ import com.projet.mtr895.app.entities.TestSuite;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
@@ -17,8 +16,8 @@ public class TestExecutor {
     private static final Logger LOG = (Logger) LoggerFactory
             .getLogger(TestLoader.class);
 
-    public static HashSet<TestSuite> loadTests(String... testingDirectories) throws Exception {
-        List<File> loadedTestSuitesFiles = Arrays.stream(testingDirectories).map(testingDirectory -> new File(testingDirectory).listFiles())
+    public static HashSet<TestSuite> loadTests(List<String> testingDirectories) throws Exception {
+        List<File> loadedTestSuitesFiles = testingDirectories.stream().map(testingDirectory -> new File(testingDirectory).listFiles())
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
                 .toList();
@@ -42,7 +41,7 @@ public class TestExecutor {
         return testSuites;
     }
 
-    public static void runTests(String... testingDirectories) throws Exception {
+    public static void runTests(List<String> testingDirectories) throws Exception {
         HashSet<TestSuite> testSuites = loadTests(testingDirectories);
         for (TestSuite testSuite : testSuites){
             LOG.info("Loading TestSuite[" + testSuite.getTestSuiteName() + "] .......");

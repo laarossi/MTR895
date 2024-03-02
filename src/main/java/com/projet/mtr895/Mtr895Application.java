@@ -30,7 +30,6 @@ public class Mtr895Application implements CommandLineRunner {
             LOG.error("Unable to initialize the execution wrapper, check the execution mode parameter");
             return;
         }
-
         runtimeWrapper.run(args);
     }
 
