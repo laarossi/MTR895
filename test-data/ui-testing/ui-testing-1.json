@@ -6,7 +6,8 @@
       "path": "entries",
       "method": "get"
     },
-    "exec" : [],
-    "expected" : []
+    "exec" : {
+      "type" : "ui"
+    }
   }
 ]

@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Logger;
 import com.projet.mtr895.Mtr895Application;
 import com.projet.mtr895.app.engine.executor.Executor;
 import com.projet.mtr895.app.engine.executor.api.K6TestExecutor;
-import com.projet.mtr895.app.engine.parser.ExecConfigurationParser;
+import com.projet.mtr895.app.engine.parser.ConfigParser;
 import com.projet.mtr895.app.engine.parser.api.SmokeTestConfigParser;
 import com.projet.mtr895.app.engine.reporter.K6HTMLReporter;
 import com.projet.mtr895.app.engine.reporter.Reporter;
@@ -13,13 +13,12 @@ import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.ExecConfig;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TestParser {
 
-    private static final Map<String, Class<? extends ExecConfigurationParser>> testConfigParsersMap = new HashMap<>();
+    private static final Map<String, Class<? extends ConfigParser>> testConfigParsersMap = new HashMap<>();
     private static final Map<String, Class<? extends Executor>> testExecutorsMap = new HashMap<>();
     private static final Map<String, Class<? extends Reporter>> htmlReportGenerator = new HashMap<>();
     private static final Logger LOG = (Logger) LoggerFactory.getLogger(Mtr895Application.class);
@@ -83,8 +82,8 @@ public class TestParser {
         if(execConfigurationParserClass == null)
             throw new IOException("ExecConfigurationParser not found for type [" + testCase.getType() + "]");
 
-        ExecConfigurationParser execConfigurationParser = (ExecConfigurationParser) execConfigurationParserClass.getDeclaredConstructor().newInstance();
-        return execConfigurationParser.parse(testCase);
+        ConfigParser configParser = (ConfigParser) execConfigurationParserClass.getDeclaredConstructor().newInstance();
+        return configParser.parse(testCase);
     }
 
     public static Reporter parseReporter(TestCase testCase) throws Exception {

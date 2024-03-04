@@ -1,27 +1,29 @@
 package com.projet.mtr895.app.engine.parser.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.projet.mtr895.app.engine.parser.ExecConfigurationParser;
+import com.projet.mtr895.app.engine.parser.ConfigParser;
 import com.projet.mtr895.app.entities.TestCase;
+import com.projet.mtr895.app.entities.exec.ExecConfig;
 import com.projet.mtr895.app.entities.exec.K6ExecConfig;
-import net.minidev.json.JSONObject;
+import org.checkerframework.checker.units.qual.K;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SmokeTestConfigParser implements ExecConfigurationParser {
+public class SmokeTestConfigParser implements ConfigParser {
 
     @Override
-    public void setDefaults(K6ExecConfig k6ExecConfig) {
+    public void setDefaults(ExecConfig execConfig) {
+        K6ExecConfig k6ExecConfig = (K6ExecConfig) execConfig;
         k6ExecConfig.setK6JSONFilePath("k6/smoke-testing.js");
         k6ExecConfig.getK6Options().putIfAbsent("vus", "5");
         k6ExecConfig.getK6Options().putIfAbsent("iterations", "10");
     }
 
     @Override
-    public void setConfig(TestCase testCase, K6ExecConfig k6ExecConfig) throws Exception {
+    public ExecConfig setConfig(TestCase testCase) throws Exception {
+        K6ExecConfig k6ExecConfig = new K6ExecConfig();
         Map<String, Object> execDataMap = testCase.getExecConfigJSONMap();
         if(execDataMap == null || execDataMap.isEmpty())
             throw new Exception("Exec object cannot be empty");
@@ -45,11 +47,12 @@ public class SmokeTestConfigParser implements ExecConfigurationParser {
 
         Map<String, Object> outputExecParams = (Map<String, Object>) execDataMap.get("output");
         if(outputExecParams == null || outputExecParams.isEmpty())
-            return;
+            return null;
 
         k6ExecConfig.setSummary((Boolean) outputExecParams.getOrDefault("summary", true));
         k6ExecConfig.setOutputFile((String) outputExecParams.getOrDefault("file", null));
         k6ExecConfig.setOutputFormat((String) outputExecParams.getOrDefault("format", "json"));
+        return k6ExecConfig;
     }
 
 }
