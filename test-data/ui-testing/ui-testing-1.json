@@ -7,7 +7,56 @@
       "method": "get"
     },
     "exec" : {
-      "type" : "ui"
+      "type" : "ui.basic",
+      "webDriver" : "chrome",
+      "options" : {
+        "acceptInsecureCerts" : false,
+        "implicitlyWait" : 5,
+        "explicitWait" : 5,
+        "pageLoadStrategy" : "eager",
+        "timeouts" : 500,
+        "proxy" : {
+          "host" : "",
+          "port" : 8080
+        }
+      },
+      "check" : {
+        "title" : "title",
+        "#dk" : "text",
+        "#sk" : "type",
+        ".dq" : "dq"
+      },
+      "events" : [
+        {
+          "element" : "#id-button",
+          "event" : "left-click",
+          "wait" : 10
+        },
+        {
+          "element" : "#id-button",
+          "event" : "double-click"
+        },
+        {
+          "element" : "#id-button",
+          "event" : "right-click"
+        },
+        {
+          "element" : "#id-button",
+          "event" : "clear"
+        },
+        {
+          "element" : "",
+          "event" : "send-keys"
+        },
+        {
+          "element" : "#id-button",
+          "event" : "submit"
+        },
+        {
+          "element" : "#id-button",
+          "event" : "select"
+        }
+      ]
     }
   }
 ]

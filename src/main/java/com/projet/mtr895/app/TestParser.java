@@ -6,6 +6,7 @@ import com.projet.mtr895.app.engine.executor.Executor;
 import com.projet.mtr895.app.engine.executor.api.K6TestExecutor;
 import com.projet.mtr895.app.engine.parser.ConfigParser;
 import com.projet.mtr895.app.engine.parser.api.SmokeTestConfigParser;
+import com.projet.mtr895.app.engine.parser.ui.SeleniumConfigParser;
 import com.projet.mtr895.app.engine.reporter.K6HTMLReporter;
 import com.projet.mtr895.app.engine.reporter.Reporter;
 import com.projet.mtr895.app.entities.Request;
@@ -27,6 +28,10 @@ public class TestParser {
         testConfigParsersMap.put("api.smoke", SmokeTestConfigParser.class);
         testExecutorsMap.put("api.smoke", K6TestExecutor.class);
         htmlReportGenerator.put("api.smoke", K6HTMLReporter.class);
+        testConfigParsersMap.put("ui.basic", SeleniumConfigParser.class);
+//        testExecutorsMap.put("ui.simple", K6TestExecutor.class);
+//        htmlReportGenerator.put("ui.simple", K6HTMLReporter.class);
+
     }
 
     public static Executor parseExecutor(TestCase testCase) throws Exception {
@@ -78,7 +83,7 @@ public class TestParser {
         if(!TestLoader.isTypeValid(testCase.getType()))
             throw new Exception("Type parameter required in the exec configuration");
 
-        Class<?> execConfigurationParserClass = testConfigParsersMap.get(testCase.getType());
+        Class<?> execConfigurationParserClass = testConfigParsersMap.get(testCase.getType().toLowerCase());
         if(execConfigurationParserClass == null)
             throw new IOException("ExecConfigurationParser not found for type [" + testCase.getType() + "]");
 
