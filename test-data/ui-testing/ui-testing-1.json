@@ -11,8 +11,6 @@
       "webDriver" : "chrome",
       "options" : {
         "acceptInsecureCerts" : false,
-        "implicitlyWait" : 5,
-        "explicitWait" : 5,
         "pageLoadStrategy" : "eager",
         "timeouts" : 500,
         "proxy" : {
@@ -30,7 +28,16 @@
         {
           "element" : "#id-button",
           "event" : "left-click",
-          "wait" : 10
+          "then" : [
+            {
+              "element" : "",
+              "value" : ""
+            },
+            {
+              "element" : "",
+              "value" : ""
+            }
+          ]
         },
         {
           "element" : "#id-button",

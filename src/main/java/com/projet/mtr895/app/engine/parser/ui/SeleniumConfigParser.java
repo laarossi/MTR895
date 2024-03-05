@@ -5,6 +5,7 @@ import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.ExecConfig;
 import com.projet.mtr895.app.entities.exec.K6ExecConfig;
 import com.projet.mtr895.app.entities.exec.SeleniumExecConfig;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +38,9 @@ public class SeleniumConfigParser implements ConfigParser {
 
         Map<String, Object> options = (Map<String, Object>) execDataMap.getOrDefault("options", new HashMap<String, Object>());
         execConfig.setOptions(options);
-        List<Map<String, Object>> actions = (List<Map<String, Object>>) execDataMap.getOrDefault("actions", new ArrayList<Map<String,Object>>());
+        List<Map<String, Object>> events = (List<Map<String, Object>>) execDataMap.getOrDefault("events", new ArrayList<Map<String,Object>>());
         List<SeleniumExecConfig.SeleniumAction> seleniumActions = new ArrayList<>();
-        for (Map<String, Object> action : actions){
+        for (Map<String, Object> action : events){
             SeleniumExecConfig.SeleniumAction seleniumAction = new SeleniumExecConfig.SeleniumAction();
             String elementSelector = (String) action.getOrDefault("element", null),
                     event = (String) action.getOrDefault("event", null);
@@ -48,9 +49,13 @@ public class SeleniumConfigParser implements ConfigParser {
             }
             seleniumAction.setElement(elementSelector);
             seleniumAction.setEvent(event);
+            seleniumAction.setWait((Integer) action.getOrDefault("wait", 0));
+            List<Map<String, String>> checkList = (List<Map<String, String>>) action.getOrDefault("then", new ArrayList<>());
+            Map<String, String> checks = new HashMap<>();
+            checkList.forEach(checks::putAll);
+            seleniumAction.setExpectedElements(checks);
             seleniumActions.add(seleniumAction);
         }
-
         execConfig.setSeleniumAction(seleniumActions);
         return execConfig;
     }

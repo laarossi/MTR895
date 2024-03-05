@@ -20,6 +20,8 @@ public class SeleniumExecConfig implements ExecConfig{
     public static class SeleniumAction{
         private String event;
         private String element;
+        private float wait;
+        private Map<String, String> expectedElements;
     }
 
 }
