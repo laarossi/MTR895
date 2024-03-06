@@ -25,30 +25,41 @@
         },
         {
           "element" : "aside#text-14",
-          "className" : "widget inner-padding widget_text"
+          "className" : "widget inner-padding widget_text",
+          "id" : "text-14",
+          "value" : "test"
         }
       ],
       "events" : [
         {
           "element" : "#id-button",
           "event" : "left-click",
-          "then" : [
+          "check-after" : [
             {
-              "type" : "navigation",
-              "currentUrl" : ""
+              "element" : "aside#text-14",
+              "className" : "widget inner-padding widget_text",
+              "id" : "text-14",
+              "value" : "test"
+            }
+          ],
+          "check-before" : [
+            {
+              "element" : "aside#text-14",
+              "className" : "widget inner-padding widget_text",
+              "id" : "text-14",
+              "value" : "test"
             },
             {
-              "type" : "cookie",
-              "currentUrl" : ""
+              "element" : "aside#text-14",
+              "className" : "widget inner-padding widget_text",
+              "id" : "text-14",
+              "value" : "test"
             },
             {
-              "type" : "alert",
-              "currentUrl" : ""
-            },
-            {
-              "type" : "element",
-              "element" : "",
-              "value" : ""
+              "element" : "aside#text-14",
+              "className" : "widget inner-padding widget_text",
+              "id" : "text-14",
+              "value" : "test"
             }
           ]
         }

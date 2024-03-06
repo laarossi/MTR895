@@ -51,10 +51,10 @@ public class SeleniumConfigParser implements ConfigParser {
             seleniumAction.setElement(elementSelector);
             seleniumAction.setEvent(event);
             seleniumAction.setWait((Integer) action.getOrDefault("wait", 0));
-            List<Map<String, String>> checkList = (List<Map<String, String>>) action.getOrDefault("then", new ArrayList<>());
-            Map<String, String> checks = new HashMap<>();
-            checkList.forEach(checks::putAll);
-            seleniumAction.setExpectedElements(checks);
+            List<Map<String, Object>> beforeChecks = (List<Map<String, Object>>) action.getOrDefault("check-before", new ArrayList<>());
+            List<Map<String, Object>> afterChecks = (List<Map<String, Object>>) action.getOrDefault("check-after", new ArrayList<>());
+            seleniumAction.setBeforeChecks(beforeChecks);
+            seleniumAction.setAfterChecks(afterChecks);
             seleniumActions.add(seleniumAction);
         }
         execConfig.setSeleniumAction(seleniumActions);

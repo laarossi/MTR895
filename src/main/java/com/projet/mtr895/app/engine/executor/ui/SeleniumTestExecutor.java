@@ -80,7 +80,7 @@ public class SeleniumTestExecutor implements Executor {
                     logMessage = "element[" + element + "]";
                     if(value != null){
                         checkResult = webElement.getText().equals(value);
-                        logMessage += ", current value : " + webElement.getText() + ", expected value: " + value;
+                        logMessage += ", current value : " + webElement.getText().replace("\n", "\\n ") + ", expected value: " + value.replace("\n", "\\n ");
                     }
                     if(className != null) {
                         checkResult = webElement.getAttribute("class").equals(className) && checkResult;
@@ -102,8 +102,7 @@ public class SeleniumTestExecutor implements Executor {
     }
 
     // Common method for finding WebElement by selector
-    private void performEvents(WebDriver webDriver, List<SeleniumExecConfig.SeleniumAction> execConfig){
-
+    private void performEvents(WebDriver webDriver, List<SeleniumExecConfig.SeleniumAction> actions){
     }
 
     private ChromeOptions getWebDriverOptions(SeleniumExecConfig execConfig) {

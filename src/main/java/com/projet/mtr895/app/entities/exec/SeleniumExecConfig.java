@@ -21,7 +21,8 @@ public class SeleniumExecConfig implements ExecConfig{
         private String event;
         private String element;
         private float wait;
-        private Map<String, String> expectedElements;
+        private List<Map<String, Object>> afterChecks;
+        private List<Map<String, Object>> beforeChecks;
     }
 
 }
