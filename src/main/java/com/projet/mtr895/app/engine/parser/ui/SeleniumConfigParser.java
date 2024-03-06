@@ -17,7 +17,8 @@ public class SeleniumConfigParser implements ConfigParser {
     @Override
     public void setDefaults(ExecConfig execConfig) {
         SeleniumExecConfig seleniumExecConfig = (SeleniumExecConfig) execConfig;
-        if(seleniumExecConfig.getWebDriver() == null || seleniumExecConfig.getWebDriver().isEmpty()) seleniumExecConfig.setWebDriver("chrome");
+        if(seleniumExecConfig.getWebDriver() == null || seleniumExecConfig.getWebDriver().isEmpty())
+            seleniumExecConfig.setWebDriver("chrome");
     }
 
     @Override
@@ -57,6 +58,7 @@ public class SeleniumConfigParser implements ConfigParser {
             seleniumActions.add(seleniumAction);
         }
         execConfig.setSeleniumAction(seleniumActions);
+        execConfig.setChecks((List<Map<String, Object>>) execDataMap.getOrDefault("check", new HashMap<>()));
         return execConfig;
     }
 

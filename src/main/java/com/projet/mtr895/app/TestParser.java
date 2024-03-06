@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Logger;
 import com.projet.mtr895.Mtr895Application;
 import com.projet.mtr895.app.engine.executor.Executor;
 import com.projet.mtr895.app.engine.executor.api.K6TestExecutor;
+import com.projet.mtr895.app.engine.executor.ui.SeleniumTestExecutor;
 import com.projet.mtr895.app.engine.parser.ConfigParser;
 import com.projet.mtr895.app.engine.parser.api.SmokeTestConfigParser;
 import com.projet.mtr895.app.engine.parser.ui.SeleniumConfigParser;
@@ -28,8 +29,8 @@ public class TestParser {
         testConfigParsersMap.put("api.smoke", SmokeTestConfigParser.class);
         testExecutorsMap.put("api.smoke", K6TestExecutor.class);
         htmlReportGenerator.put("api.smoke", K6HTMLReporter.class);
-        testConfigParsersMap.put("ui.basic", SeleniumConfigParser.class);
-//        testExecutorsMap.put("ui.simple", K6TestExecutor.class);
+        testConfigParsersMap.put("ui.simple", SeleniumConfigParser.class);
+        testExecutorsMap.put("ui.simple", SeleniumTestExecutor.class);
 //        htmlReportGenerator.put("ui.simple", K6HTMLReporter.class);
 
     }
@@ -62,7 +63,7 @@ public class TestParser {
         Request request = new Request();
         request.setHost(host);
         request.setMethod(method);
-        request.setPath(path);
+        request.setPath(path.equals("/") ? "" : path);
         HashMap<String, Object> headers;
         try{
             headers = (HashMap<String, Object>) requestJSONMap.get("headers");

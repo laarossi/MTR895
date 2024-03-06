@@ -2,66 +2,55 @@
   {
     "name" : "UI Test Case 1",
     "request" : {
-      "host": "https://api.publicapis.org",
-      "path": "entries",
+      "host": "https://19216811.uno/",
+      "path": "/",
       "method": "get"
     },
     "exec" : {
-      "type" : "ui.basic",
+      "type" : "ui.simple",
       "webDriver" : "chrome",
       "options" : {
         "acceptInsecureCerts" : false,
         "pageLoadStrategy" : "eager",
-        "timeouts" : 500,
-        "proxy" : {
-          "host" : "",
-          "port" : 8080
+        "timeouts" : 500
+      },
+      "check" : [
+        {
+          "element" : "title",
+          "value" : "192.168.1.1"
+        },
+        {
+          "element" : "currentUrl",
+          "value" : "https://19216811.uno/"
+        },
+        {
+          "element" : "aside#text-14",
+          "className" : "widget inner-padding widget_text"
         }
-      },
-      "check" : {
-        "title" : "title",
-        "#dk" : "text",
-        "#sk" : "type",
-        ".dq" : "dq"
-      },
+      ],
       "events" : [
         {
           "element" : "#id-button",
           "event" : "left-click",
           "then" : [
             {
-              "element" : "",
-              "value" : ""
+              "type" : "navigation",
+              "currentUrl" : ""
             },
             {
+              "type" : "cookie",
+              "currentUrl" : ""
+            },
+            {
+              "type" : "alert",
+              "currentUrl" : ""
+            },
+            {
+              "type" : "element",
               "element" : "",
               "value" : ""
             }
           ]
-        },
-        {
-          "element" : "#id-button",
-          "event" : "double-click"
-        },
-        {
-          "element" : "#id-button",
-          "event" : "right-click"
-        },
-        {
-          "element" : "#id-button",
-          "event" : "clear"
-        },
-        {
-          "element" : "",
-          "event" : "send-keys"
-        },
-        {
-          "element" : "#id-button",
-          "event" : "submit"
-        },
-        {
-          "element" : "#id-button",
-          "event" : "select"
         }
       ]
     }

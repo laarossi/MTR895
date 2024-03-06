@@ -12,7 +12,7 @@ public class SeleniumExecConfig implements ExecConfig{
 
     private String webDriver;
     private Map<String, Object> options;
-    private Map<String, Object> actions;
+    private List<Map<String, Object>> checks;
     private List<SeleniumAction> seleniumAction;
 
     @Getter
