@@ -2,7 +2,7 @@
   {
     "name" : "UI Test Case 1",
     "request" : {
-      "host": "https://19216811.uno/",
+      "host": "https://www.selenium.dev/documentation/webdriver/actions_api/mouse/",
       "path": "/",
       "method": "get"
     },
@@ -15,51 +15,23 @@
         "timeouts" : 500
       },
       "check" : [
-        {
-          "element" : "title",
-          "value" : "192.168.1.1"
-        },
-        {
-          "element" : "currentUrl",
-          "value" : "https://19216811.uno/"
-        },
-        {
-          "element" : "aside#text-14",
-          "className" : "widget inner-padding widget_text",
-          "id" : "text-14",
-          "value" : "test"
-        }
+
       ],
       "events" : [
         {
-          "element" : "#id-button",
-          "event" : "left-click",
+          "element" : "//span[text()='Downloads']",
+          "selector" : "xPath",
+          "event" : "click",
           "check-after" : [
             {
-              "element" : "aside#text-14",
-              "className" : "widget inner-padding widget_text",
-              "id" : "text-14",
-              "value" : "test"
+              "element" : "title",
+              "value" : "Downloads | Selenium"
             }
           ],
           "check-before" : [
             {
-              "element" : "aside#text-14",
-              "className" : "widget inner-padding widget_text",
-              "id" : "text-14",
-              "value" : "test"
-            },
-            {
-              "element" : "aside#text-14",
-              "className" : "widget inner-padding widget_text",
-              "id" : "text-14",
-              "value" : "test"
-            },
-            {
-              "element" : "aside#text-14",
-              "className" : "widget inner-padding widget_text",
-              "id" : "text-14",
-              "value" : "test"
+              "element" : "title",
+              "value" : "Mouse actions | Selenium"
             }
           ]
         }

@@ -20,6 +20,7 @@ public class SeleniumExecConfig implements ExecConfig{
     public static class SeleniumAction{
         private String event;
         private String element;
+        private String selector;
         private float wait;
         private List<Map<String, Object>> afterChecks;
         private List<Map<String, Object>> beforeChecks;
