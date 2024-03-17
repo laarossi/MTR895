@@ -1,15 +1,17 @@
 package com.projet.mtr895.app.engine.executor;
 
-import com.projet.mtr895.app.entities.exec.ExecConfig;
 import com.projet.mtr895.app.entities.TestCase;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 public interface Executor {
 
-    default InputStream run(TestCase testCase) throws Exception {
-        return null;
+    default boolean run(TestCase testCase, String outputDir) throws Exception {
+        boolean statusTestCase = executeTestCase(testCase, outputDir);
+        generateReport(testCase);
+        return statusTestCase;
     }
+
+    boolean executeTestCase(TestCase testCase, String outputDir) throws Exception;
+
+    void generateReport(TestCase testCase) throws Exception;
 
 }

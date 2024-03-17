@@ -1,38 +1,84 @@
 package com.projet.mtr895.app.engine.executor.ui;
 
 import ch.qos.logback.classic.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projet.mtr895.app.TestLoader;
+import com.projet.mtr895.app.TestParser;
 import com.projet.mtr895.app.engine.executor.Executor;
+import com.projet.mtr895.app.engine.reporter.Reporter;
 import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.SeleniumExecConfig;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONStyle;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SeleniumTestExecutor implements Executor {
 
     private static final Logger LOG = (Logger) LoggerFactory
             .getLogger(TestLoader.class);
 
+    private boolean testCaseResult = true;
+
+    private final JSONObject jsonResultObject = new JSONObject();
     @Override
-    public InputStream run(TestCase testCase) throws Exception {
+    public boolean executeTestCase(TestCase testCase, String outputDirectory) throws IOException {
         SeleniumExecConfig execConfig = (SeleniumExecConfig) testCase.getExecConfig();
+        jsonResultObject.put("name", testCase.getName());
         ChromeOptions chromeOptions = parseWebDriverOptions(execConfig);
-        WebDriver webDriver = createWebDriver(execConfig, chromeOptions, testCase);
-        LOG.info("Performing checks....");
-        performChecks(webDriver, execConfig.getChecks());
-        performEvents(webDriver, execConfig.getSeleniumAction());
-        webDriver.quit();
-        return null;
+        JSONArray tempArrayList = new JSONArray();
+        if (performChecks(testCase, chromeOptions, execConfig, tempArrayList).contains(false)) testCaseResult = false;
+        jsonResultObject.put("checks", tempArrayList);
+        tempArrayList = new JSONArray();
+        performEvents(testCase, chromeOptions, execConfig, tempArrayList);
+        jsonResultObject.put("events", tempArrayList);
+        String testCaseDir = testCase.getName()
+                .toLowerCase()
+                .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
+        initDirectories(testCaseDir, outputDirectory);
+        testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toString());
+        File file = new File(Files.createFile(Path.of(outputDirectory, testCaseDir + "/summary.json")).toUri());
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        fileOutputStream.write(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(jsonResultObject));
+        testCase.setJsonExecutionResultsMap(jsonResultObject);
+        fileOutputStream.close();
+        return testCaseResult;
+    }
+
+    private void initDirectories(String testCaseName, String outputDirectory) throws IOException {
+        Path dir = Paths.get(outputDirectory, testCaseName);
+        if (Files.exists(dir)) {
+            try {
+                Files.walk(dir)
+                        .sorted((p1, p2) -> -p1.compareTo(p2))
+                        .forEach(p -> {
+                            try {
+                                Files.delete(p);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else Files.createDirectories(dir);
+    }
+
+    public void generateReport(TestCase testCase) throws Exception {
+        if(testCase.getOutputDir() == null || testCase.getOutputDir().isEmpty()) return;
+        Reporter reporter = TestParser.parseReporter(testCase);
+        reporter.report(testCase);
     }
 
     private WebDriver createWebDriver(SeleniumExecConfig execConfig, ChromeOptions chromeOptions, TestCase testCase) {
@@ -50,30 +96,45 @@ public class SeleniumTestExecutor implements Executor {
         return webDriver;
     }
 
+    private List<Boolean> performChecks(TestCase testCase, ChromeOptions options, SeleniumExecConfig seleniumExecConfig, JSONArray jsonObject) {
+        WebDriver webDriver = createWebDriver(seleniumExecConfig, options, testCase);
+        List<Boolean> results = performChecks(webDriver, seleniumExecConfig.getChecks(), jsonObject);
+        webDriver.quit();
+        return results;
+    }
 
-    private List<Boolean> performChecks(WebDriver webDriver, List<Map<String, Object>> checks) {
+    private List<Boolean> performChecks(WebDriver webDriver, List<Map<String, Object>> checks, JSONArray jsonObject) {
         List<Boolean> checkList = new ArrayList<>();
         for (Map<String, Object> check : checks) {
-            boolean checkResult = true;
+            JSONObject checkResult = new JSONObject();
+            boolean isCheckedSuccessfully = true;
             String element = (String) check.getOrDefault("element", null),
                     selector = (String) check.getOrDefault("selector", "cssSelector"),
                     value = (String) check.getOrDefault("value", null),
                     className = (String) check.getOrDefault("className", null),
                     id = (String) check.getOrDefault("id", null),
                     logMessage = "";
+
+            checkResult.put("element", element);
+            checkResult.put("value", value);
+            checkResult.put("selector", selector);
+            checkResult.put("id", id);
+            checkResult.put("className", className);
             switch (element.toLowerCase()) {
                 case "title":
-                    checkResult = webDriver.getTitle().equals(value);
+                    isCheckedSuccessfully = webDriver.getTitle().equals(value);
+                    checkResult.put("currentValue", webDriver.getTitle());
                     logMessage = "title, current: " + webDriver.getTitle() + ", expected: " + value;
                     break;
 
                 case "pagesource":
-                    checkResult = webDriver.getPageSource().equals(value);
+                    isCheckedSuccessfully = webDriver.getPageSource().equals(value);
                     logMessage = "pageSource";
                     break;
 
                 case "currenturl":
-                    checkResult = webDriver.getCurrentUrl().equals(value);
+                    isCheckedSuccessfully = webDriver.getCurrentUrl().equals(value);
+                    checkResult.put("currentValue", webDriver.getCurrentUrl());
                     logMessage = "current URL, current: " + webDriver.getCurrentUrl() + ", expected: " + value;
                     break;
 
@@ -86,42 +147,60 @@ public class SeleniumTestExecutor implements Executor {
 
                     if (webElement == null) {
                         LOG.error("Element " + element + " not found, checking of the element aborted");
+                        this.testCaseResult = false;
                         break;
                     }
                     logMessage = "element[" + element + "]";
                     if (value != null) {
-                        checkResult = webElement.getText().equals(value);
-                        logMessage += ", current value : " + webElement.getText().replace("\n", "\\n ") + ", expected value: " + value.replace("\n", "\\n ");
+                        isCheckedSuccessfully = webElement.getText().equals(value);
+                        checkResult.put("currentValue", webElement.getText());
+                        logMessage += ", current value : " + webElement.getText()
+                                .replace("\n", "\\n ") + ", expected value: " + value.replace("\n", "\\n ");
                     }
                     if (className != null) {
-                        checkResult = webElement.getAttribute("class").equals(className) && checkResult;
+                        isCheckedSuccessfully = webElement.getAttribute("class").equals(className) && isCheckedSuccessfully;
+                        checkResult.put("currentValue", webElement.getAttribute("class"));
                         logMessage += ", current className : " + webElement.getAttribute("class") + ", expected className : " + className;
                     }
                     if (id != null) {
-                        checkResult = webElement.getAttribute("id").equals(id) && checkResult;
+                        isCheckedSuccessfully = webElement.getAttribute("id").equals(id) && isCheckedSuccessfully;
+                        checkResult.put("currentValue", webElement.getAttribute("id"));
                         logMessage += ", current id : " + webElement.getAttribute("id") + ", expected id : " + id;
                     }
                     break;
             }
 
-            checkList.add(checkResult);
-            String logInfo = checkResult ? "Checked successfully for " : "Unexpected value for ";
+            checkList.add(isCheckedSuccessfully);
+            checkResult.put("status", isCheckedSuccessfully);
+            jsonObject.add(checkResult);
+            String logInfo = isCheckedSuccessfully ? "Checked successfully for " : "Unexpected value for ";
             LOG.info(logInfo + logMessage);
         }
 
         return checkList;
     }
 
-    private void performEvents(WebDriver webDriver, List<SeleniumExecConfig.SeleniumAction> actions) {
-        for (SeleniumExecConfig.SeleniumAction action : actions) {
+    private void performEvents(TestCase testCase, ChromeOptions chromeOptions, SeleniumExecConfig execConfig, JSONArray jsonArray) {
+        for (SeleniumExecConfig.SeleniumAction action : execConfig.getSeleniumAction()) {
+            JSONObject jsonObject = new JSONObject();
+            JSONArray tempArray = new JSONArray();
+            WebDriver webDriver = createWebDriver(execConfig, chromeOptions, testCase);
             List<Map<String, Object>> beforeChecks = action.getBeforeChecks();
             LOG.info("Performing checks before executing the event....");
-            if (performChecks(webDriver, beforeChecks).contains(false)) {
+            if (performChecks(webDriver, beforeChecks, tempArray).contains(false)) {
                 LOG.error("Before checks failed for action " + action.getEvent() + " on element : " + action.getElement());
                 LOG.error("Aborting the execution of the event");
-                return;
+                webDriver.quit();
+                jsonObject.put("before-checks", tempArray);
+                jsonObject.put("event-execution-status", false);
+                this.testCaseResult = false;
+                break;
             }
 
+            jsonObject.put("before-checks", tempArray);
+            jsonObject.put("event", action.getEvent());
+            jsonObject.put("element", action.getElement());
+            jsonObject.put("selector", action.getSelector());
             WebElement webElement;
             if (action.getSelector().equals("xPath"))
                 webElement = webDriver.findElement(By.xpath(action.getElement()));
@@ -130,7 +209,10 @@ public class SeleniumTestExecutor implements Executor {
 
             if (webElement == null) {
                 LOG.error("Element " + action.getElement() + " not found, aborting the execution of the event " + action.getEvent());
-                return;
+                jsonObject.put("event-execution-status", false);
+                webDriver.quit();
+                testCaseResult = false;
+                break;
             }
             LOG.info("Performing event " + action.getEvent() + " on element " + action.getElement() + "....");
             switch (action.getEvent()) {
@@ -159,11 +241,17 @@ public class SeleniumTestExecutor implements Executor {
 
             }
 
+            jsonObject.put("event-execution-status", true);
+            tempArray = new JSONArray();
             LOG.info("Performing after checks....");
             List<Map<String, Object>> afterChecks = action.getAfterChecks();
-            if (performChecks(webDriver, afterChecks).contains(false)) {
+            if (performChecks(webDriver, afterChecks, tempArray).contains(false)) {
                 LOG.error("After checks failed for action " + action.getEvent() + " on element : " + action.getElement());
+                testCaseResult = false;
             }
+            jsonObject.put("after-checks", tempArray);
+            jsonArray.add(jsonObject);
+            webDriver.quit();
         }
     }
 

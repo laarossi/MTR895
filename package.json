@@ -12,6 +12,7 @@
   },
   "private": true,
   "dependencies": {
-    "k6": "^0.0.0"
+    "k6": "^0.0.0",
+    "lodash": "^4.17.21"
   }
 }

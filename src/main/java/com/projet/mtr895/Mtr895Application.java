@@ -23,7 +23,8 @@ public class Mtr895Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if(args.length != 0) parseArguments(args);
+        if(args.length != 0)
+            parseArguments(args);
         LOG.info("EXECUTION MODE : " + this.executionMode);
         RuntimeWrapper runtimeWrapper = this.executionMode.equals("console") ? new ConsoleRuntime() : null;
         if(runtimeWrapper == null){

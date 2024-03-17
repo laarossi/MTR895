@@ -1,12 +1,17 @@
-package com.projet.mtr895.app.engine.reporter;
+package com.projet.mtr895.app.engine.reporter.api;
 
+import ch.qos.logback.classic.Logger;
 import com.jayway.jsonpath.JsonPath;
+import com.projet.mtr895.app.TestLoader;
+import com.projet.mtr895.app.engine.reporter.Reporter;
 import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.report.Report;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.Buffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -16,27 +21,29 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class K6HTMLReporter implements Reporter {
+public class K6Reporter implements Reporter {
+
+    private static final Logger LOG = (Logger) LoggerFactory
+            .getLogger(TestLoader.class);
 
     @Override
-    public void report(File file, TestCase testCase) throws Exception {
-        DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(file));
+    public void report(TestCase testCase) throws Exception {
         if (testCase == null) {
-            dataOutputStream.write(("Unexpected error the TestCase is null").getBytes());
-            dataOutputStream.close();
+            LOG.error("Unexpected error the TestCase is null");
             return;
         }
 
         if (testCase.getJsonExecutionResultsMap() == null || testCase.getJsonExecutionResultsMap().isEmpty()) {
-            dataOutputStream.write("Empty json results, check the execution of the TestCase".getBytes());
-            dataOutputStream.close();
+            LOG.error("Empty json results, check the execution of the TestCase");
             return;
         }
 
+        File file = Files.createFile(Path.of(testCase.getOutputDir() + "/report.html")).toFile();
+        DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(file));
+
         Map<String, Object> executionResults = (Map<String, Object>) testCase.getJsonExecutionResultsMap().get("root_group");
         if (executionResults == null) {
-            dataOutputStream.write("Empty metrics results json file".getBytes());
-            dataOutputStream.close();
+            LOG.error("Empty metrics results json file");
             return;
         }
 
@@ -45,9 +52,9 @@ public class K6HTMLReporter implements Reporter {
         openHTMLBody(dataOutputStream, testCase);
         includeTestCaseHeader(dataOutputStream, testCase);
         includeTestLogs(dataOutputStream, testCase);
-
+        Map<String, Object> checks = null;
         if (testCase.getJsonExecutionResultsMap().get("root_group") != null) {
-            Map<String, Object> checks = (Map<String, Object>) ((Map<?, ?>) testCase.getJsonExecutionResultsMap().get("root_group")).get("checks");
+            checks = (Map<String, Object>) ((Map<?, ?>) testCase.getJsonExecutionResultsMap().get("root_group")).get("checks");
             if (checks != null && !checks.isEmpty())
                 printChecks(checks, dataOutputStream);
         }
@@ -69,6 +76,7 @@ public class K6HTMLReporter implements Reporter {
             printHttpMetrics(dataOutputStream, httpMetricsB, metrics);
             printOtherMetrics(dataOutputStream, httpMetricsT, metrics);
             includeJS(dataOutputStream, metrics, httpMetricsB);
+            includeJS(dataOutputStream, checks);
         }
 
         closeHTMLBody(dataOutputStream, testCase);
@@ -81,9 +89,9 @@ public class K6HTMLReporter implements Reporter {
             Map<String, Object> metricObj = (Map<String, Object>) metrics.get(metric);
             if (metricObj == null || metricObj.isEmpty())
                 continue;
-            dataOutputStream.write(("<div class='metric'><h1>"+ metric +"</h1><table>").getBytes());
-            for(String key : metricObj.keySet()){
-                dataOutputStream.write(("<tr><td>" + key + "</td><td>" + metricObj.get(key)+ "</td></tr>").getBytes());
+            dataOutputStream.write(("<div class='metric'><h1>" + metric + "</h1><table>").getBytes());
+            for (String key : metricObj.keySet()) {
+                dataOutputStream.write(("<tr><td>" + key + "</td><td>" + metricObj.get(key) + "</td></tr>").getBytes());
             }
             dataOutputStream.write("</table></div>".getBytes());
         }
@@ -93,7 +101,7 @@ public class K6HTMLReporter implements Reporter {
         dataOutputStream.write(("" +
                 "<div class='header'>" +
                 "   <p>" + testCase.getName() + "</p>" +
-                "   <a href=\""+ Path.of(testCase.getOutputDir()).toAbsolutePath() +"\" class='outputDir'>" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "</a>" +
+                "   <a href=\"" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "\" class='outputDir'>" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "</a>" +
                 "</div>").getBytes());
     }
 
@@ -106,7 +114,7 @@ public class K6HTMLReporter implements Reporter {
                 logs.add(line);
             line = reader.readLine();
         }
-        if (logs.isEmpty()){
+        if (logs.isEmpty()) {
             reader.close();
             return;
         }
@@ -115,9 +123,12 @@ public class K6HTMLReporter implements Reporter {
         logs.forEach(log -> {
             try {
                 dataOutputStream.write("<p>".getBytes());
-                if(log.contains("level=error")) dataOutputStream.write("<span class='error'>[ERROR]</span>".getBytes());
-                else if(log.contains("level=info")) dataOutputStream.write("<span class='info'>[INFO]</span>".getBytes());
-                else if(log.contains("level=warn")) dataOutputStream.write("<span class='warn'>[WARN]</span>".getBytes());
+                if (log.contains("level=error"))
+                    dataOutputStream.write("<span class='error'>[ERROR]</span>".getBytes());
+                else if (log.contains("level=info"))
+                    dataOutputStream.write("<span class='info'>[INFO]</span>".getBytes());
+                else if (log.contains("level=warn"))
+                    dataOutputStream.write("<span class='warn'>[WARN]</span>".getBytes());
                 dataOutputStream.write((log + "</p>").getBytes());
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -126,43 +137,85 @@ public class K6HTMLReporter implements Reporter {
         dataOutputStream.write("</div>".getBytes());
         reader.close();
     }
+
     private void includeJS(DataOutputStream dataOutputStream, Map<String, Object> metrics, List<String> httpMetrics) throws IOException {
         dataOutputStream.write("<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>".getBytes());
         httpMetrics.forEach(metric -> {
             Map<String, Float> metricsData = (Map<String, Float>) metrics.get(metric);
+            metricsData.remove("thresholds");
             Object[] labelsSet = metricsData.keySet().toArray();
             StringBuilder label = new StringBuilder();
-            for (int i = 0; i < labelsSet.length; i++){
-                if(i == 0) label.append("[");
+            for (int i = 0; i < labelsSet.length; i++) {
+                if (i == 0) label.append("[");
                 label.append("'").append(labelsSet[i]).append("'");
-                if(i == labelsSet.length - 1) label.append("]");
+                if (i == labelsSet.length - 1) label.append("]");
                 else label.append(",");
             }
             String values = metricsData.values().toString();
             try {
                 dataOutputStream.write(("<script>\n" +
-                                    "\n" +
-                                    "  new Chart('"+metric+"', {\n" +
-                                    "    type: 'bar',\n" +
-                                    "    data: {\n" +
-                                    "      labels: " + label + ",\n" +
-                                    "      datasets: [{\n" +
-                                    "        label: '# responses in ms',\n" +
-                                    "        data: " + values + ",\n" +
-                                    "        borderWidth: 1\n" +
-                                    "      }]\n" +
-                                    "    },\n" +
-                                    " options : { responsive : false," +
-                                    "      scales: { \n" +
-                                    "        y: {\n" +
-                                    "          beginAtZero: true\n" +
-                                    "        }\n" +
-                                    "      }\n" +
-                                    "    }\n" +
-                                    "  });\n" +
-                        "              var chartEl = document.getElementById(\""+metric+"\");\n" +
+                        "\n" +
+                        "  new Chart('" + metric + "', {\n" +
+                        "    type: 'bar',\n" +
+                        "    data: {\n" +
+                        "      labels: " + label + ",\n" +
+                        "      datasets: [{\n" +
+                        "        label: '# responses in ms',\n" +
+                        "        data: " + values + ",\n" +
+                        "        borderWidth: 1\n" +
+                        "      }]\n" +
+                        "    },\n" +
+                        " options : { responsive : false," +
+                        "      scales: { \n" +
+                        "        y: {\n" +
+                        "          beginAtZero: true\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  });\n" +
+                        "              var chartEl = document.getElementById(\"" + metric + "\");\n" +
                         "chartEl.height = 350" +
-                                    "</script>").getBytes());
+                        "</script>").getBytes());
+                dataOutputStream.write(("<script>" +
+                        "var vancesElements = document.getElementsByClassName(\"canvas\");\n" +
+                        "\n" +
+                        "// Loop through each element and set height and width to 200\n" +
+                        "for (var i = 0; i < vancesElements.length; i++) {\n" +
+                        "  vancesElements[i].style.height = \"200px\";\n" +
+                        "  vancesElements[i].style.width = \"200px\";\n" +
+                        "}" +
+                        "</script>").getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private void includeJS(DataOutputStream dataOutputStream, Map<String, Object> checks) throws IOException {
+        checks.keySet().forEach(key -> {
+            Map<String, Object> check = (Map<String, Object>) checks.get(key);
+            try {
+                dataOutputStream.write(("<script>\n" +
+                        "\n" +
+                        "  new Chart('" + key.replaceAll(" ", "_") + "', {\n" +
+                        "    type: 'bar',\n" +
+                        "    data: {\n" +
+                        "      labels: ['fails','passes'],\n" +
+                        "      datasets: [{\n" +
+                        "        label: '# number of iterations/requests',\n" +
+                        "        data: ["+ Integer.parseInt(check.get("fails").toString())+","+ Integer.parseInt(check.get("passes").toString()) +"],\n" +
+                        "        borderWidth: 1\n" +
+                        "      }]\n" +
+                        "    },\n" +
+                        " options : { responsive : false," +
+                        "      scales: { \n" +
+                        "        y: {\n" +
+                        "          beginAtZero: true\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  });\n" +
+                        "</script>").getBytes());
                 dataOutputStream.write(("<script>" +
                         "var vancesElements = document.getElementsByClassName(\"canvas\");\n" +
                         "\n" +
@@ -179,7 +232,7 @@ public class K6HTMLReporter implements Reporter {
     }
 
     private void printHttpMetrics(DataOutputStream dataOutputStream, List<String> httpMetrics, Map<String, Object> metrics) throws IOException {
-        dataOutputStream.write("<br><br><br><br><br><br><br><h1 class=\"title\">Http Metrics :</h1>".getBytes());
+        dataOutputStream.write("<br><h1 class=\"title\">Http Metrics :</h1>".getBytes());
         for (String metric : httpMetrics) {
             Map<String, Object> metricObj = (Map<String, Object>) metrics.get(metric);
             if (metricObj == null || metricObj.isEmpty())
@@ -189,42 +242,36 @@ public class K6HTMLReporter implements Reporter {
             dataOutputStream.write(("<canvas id=\"" + metric + "\"></canvas>").getBytes());
             dataOutputStream.write("</div>".getBytes());
         }
+
+        dataOutputStream.write("<br><br><h1 class=\"title\">Http Metrics Thresholds:</h1>".getBytes());
+        for (String metric : httpMetrics) {
+            Map<String, Object> metricObj = (Map<String, Object>) metrics.get(metric);
+            if (metricObj == null || metricObj.isEmpty())
+                continue;
+            if (metricObj.containsKey("thresholds")) {
+                dataOutputStream.write("<div class='metric'>".getBytes());
+                dataOutputStream.write(("<h1>" + metric + "</h1>").getBytes());
+                Map<String, Object> thresholds = (Map<String, Object>) metricObj.get("thresholds");
+                dataOutputStream.write("<div class='thresholds'>".getBytes());
+                for (String key : thresholds.keySet()) {
+                    dataOutputStream.write(("<p>" + key + " : " + thresholds.get(key) + "</p>").getBytes());
+                }
+                dataOutputStream.write("</div>".getBytes());
+                dataOutputStream.write("</div>".getBytes());
+            }
+        }
+
     }
 
     private void printChecks(Map<String, Object> checks, DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.write("<h1 class=\"title\">Check Results</h1>".getBytes());
-        checks.forEach((key, value) -> {
+        checks.keySet().forEach(key -> {
             try {
                 Map<String, Object> mapCheckResult = (Map<String, Object>) checks.get(key);
-                float passes = (float) (int) mapCheckResult.get("passes") / 100;
-                float fails = (float) (int) mapCheckResult.get("fails") / 100;
-                dataOutputStream.write(("<div id=\"column-example-4\">\n" +
-                        "<h4>" + mapCheckResult.get("name") + "</h4>" +
-                        "  <table class=\"charts-css column show-labels show-10-secondary-axes\">\n" +
-                        "    <caption> Column Example #4 </caption>\n" +
-                        "    <thead>\n" +
-                        "      <tr>\n" +
-                        "        <th scope=\"col\"> Status </th>\n" +
-                        "        <th scope=\"col\"> Rate </th>\n" +
-                        "      </tr>\n" +
-                        "    </thead>\n" +
-                        "    <tbody>\n" +
-                        "      <tr>\n" +
-                        "        <th scope=\"row\" style='margin-bottom:-50px;'> FAIL </th>\n" +
-                        "        <td style=\"--size: " + fails + ";\">" +
-                        "           <span class=\"data\">" + (int) fails * 100 + "</span>" +
-                        "         </td>\n" +
-                        "      </tr>\n" +
-                        "      <tr>\n" +
-                        "        <th scope=\"row\" style='margin-bottom:-50px;'> PASS </th>\n" +
-                        "        <td style=\"--size: " + passes + ";\">" +
-                        "           <span class=\"data\">" + (int) passes * 100 + "</span>" +
-                        "       </td>\n" +
-                        "      </tr>\n" +
-                        "    </tbody>\n" +
-                        "  </table>\n" +
-                        "</div>\n" +
-                        "\n").getBytes());
+                dataOutputStream.write("<div class='metric'>".getBytes());
+                dataOutputStream.write(("<h1>" +  mapCheckResult.get("name")  + "</h1>").getBytes());
+                dataOutputStream.write(("<canvas id=\"" +  mapCheckResult.get("name").toString().replaceAll(" ", "_") + "\"></canvas>").getBytes());
+                dataOutputStream.write("</div>".getBytes());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

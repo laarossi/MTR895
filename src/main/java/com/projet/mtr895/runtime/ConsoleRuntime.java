@@ -15,7 +15,32 @@ public class ConsoleRuntime implements RuntimeWrapper{
     @Override
     public void run(String... args) throws Exception {
         LOG.info("RUNNING APP IN CONSOLE");
-        List<String> testingDirectories = Arrays.stream(args).skip(1).toList();
-        TestExecutor.runTests(testingDirectories);
+        if (args.length < 2 || !args[1].equals("--testDir")) {
+            System.out.println("Usage: java ArgumentChecker --testDir <path1,path2,...> [--outputDir <outputDirectory>]");
+            System.exit(1);
+        }
+
+        String testDirs = args[2];
+        String outputDir = null;
+
+        if (args.length >= 4 && args[3].equals("--outputDir")) {
+            outputDir = args[4];
+        }
+
+        String[] testingDirectories = Arrays.stream(testDirs.split(","))
+                .map(String::trim)
+                .toArray(String[]::new);
+
+        if (testingDirectories.length == 0){
+            System.out.println("No testing directories provided.");
+        }
+
+        System.out.println("Test directories: " + Arrays.toString(testingDirectories));
+        if (outputDir != null) {
+            System.out.println("Using default Output directory");
+        } else {
+            System.out.println("Output directory not specified. Using default location (or handle as needed).");
+        }
+        System.exit(TestExecutor.runTests(List.of(testingDirectories), outputDir) ? 0 : 1);
     }
 }

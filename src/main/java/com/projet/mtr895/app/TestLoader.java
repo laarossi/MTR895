@@ -49,8 +49,8 @@ public class TestLoader {
             try {
                 tc.setRequest(TestParser.parseRequest((Map<String, Object>) testCase.get("request")));
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("Skipping TestCase#" + tc.getId());
+                LOG.error(e.getLocalizedMessage());
                 continue;
             }
             tc.setExecConfigJSONMap(execConfigDataMap);

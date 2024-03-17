@@ -41,8 +41,9 @@ public class TestExecutor {
         return testSuites;
     }
 
-    public static void runTests(List<String> testingDirectories) throws Exception {
+    public static boolean runTests(List<String> testingDirectories, String outputDir) throws Exception {
         HashSet<TestSuite> testSuites = loadTests(testingDirectories);
+        boolean status = true;
         for (TestSuite testSuite : testSuites){
             LOG.info("Loading TestSuite[" + testSuite.getTestSuiteName() + "] .......");
             if(testSuite.getTestCases() == null || testSuite.getTestCases().isEmpty()){
@@ -55,13 +56,15 @@ public class TestExecutor {
                 LOG.info("Creating Executor for TestCase#" + testCase.getId());
                 try {
                     Executor testCaseExecutor = TestParser.parseExecutor(testCase);
-                    InputStream inputStream = testCaseExecutor.run(testCase);
+                    boolean testCaseStatus = testCaseExecutor.run(testCase, outputDir);
+                    status = testCaseStatus && status;
                 }catch (Exception e){
                     e.printStackTrace();
                     LOG.error("Skipping the execution of the TestCase#" + testCase.getId());
                 }
             }
         }
+        return status;
     }
 
 }

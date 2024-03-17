@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.InputStream;
 
 public interface Reporter {
-    default void report(File file, TestCase testCase) throws Exception {
+    default void report(TestCase testCase) throws Exception {
         throw new Exception("Report does not support HTML format");
     }
 

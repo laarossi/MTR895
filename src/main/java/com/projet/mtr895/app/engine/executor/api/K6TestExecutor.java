@@ -13,15 +13,12 @@ import lombok.Getter;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Getter
@@ -31,33 +28,79 @@ public class K6TestExecutor implements Executor {
             .getLogger(TestLoader.class);
 
     @Override
-    public InputStream run(TestCase testCase) throws Exception {
-        if(!ConsoleUtils.isK6Installed())
-            throw new IOException("Grafana K6 is not installed in the system");
+    public boolean executeTestCase(TestCase testCase, String outputDir) {
+        if (!ConsoleUtils.isK6Installed()) {
+            LOG.error("Grafana K6 tool not installed in the system");
+            return false;
+        }
+
+        if (testCase == null){
+            LOG.error("Aborting execution, TestCase is null. Please check the parsed JSON data in " + testCase.getName());
+            return false;
+        }
+
+        if (testCase.getRequest() == null){
+            LOG.error("Request Data cannot be null.  Please check the parsed JSON data in " + testCase.getName());
+            return false;
+        }
+
+        if (testCase.getRequest().getHost() == null || testCase.getRequest().getHost().isEmpty()){
+            LOG.error("Request Data missing host/path.  Please check the parsed JSON data in " + testCase.getName());
+            return false;
+        }
 
         K6ExecConfig k6ExecConfig = (K6ExecConfig) testCase.getExecConfig();
-        String resultDir = testCase.getName().toLowerCase().replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
-        initDirectories(resultDir);
-        testCase.setOutputDir(resultDir);
-        List<String> shellCommands = getShellCommands(k6ExecConfig, resultDir);
-        LOG.info(String.join(" ", shellCommands));
-        Files.createFile(Path.of(resultDir + "/logs"));
-        ConsoleUtils.run(String.join(" ", shellCommands), new File(resultDir + "/logs"));
-        generateReport(testCase, resultDir);
-        return null;
+        String resultDir = testCase.getName()
+                .toLowerCase()
+                .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
+
+        testCase.setOutputDir(String.valueOf(Path.of(outputDir, resultDir)));
+        try {
+            initDirectories(testCase);
+            List<String> shellCommands = getShellCommands(k6ExecConfig, testCase);
+            System.out.println(String.join(" ", shellCommands));
+            return ConsoleUtils.run(String.join(" ", shellCommands), new File(testCase.getOutputDir() + "/logs"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    private void generateReport(TestCase testCase, String resultDir) throws Exception {
-        Map<String, Object> summaryJsonContent = JsonPath.read(Files.readString(Path.of(resultDir + "/summary.json")), "$");
+    public void generateReport(TestCase testCase) {
+        K6ExecConfig k6ExecConfig = (K6ExecConfig) testCase.getExecConfig();
+        if (!k6ExecConfig.isSummary()) {
+            LOG.info("Aborting the creation of the report as passed in the config");
+            return;
+        }
+        String jsonString;
+        Map<String, Object> summaryJsonContent;
+        try {
+            jsonString = Files.readString(Path.of(testCase.getOutputDir() + "/summary.json"));
+            summaryJsonContent = JsonPath.read(jsonString, "$");
+        } catch (Exception e) {
+            LOG.error("Aborting the creation of the report, " + testCase.getOutputDir() + "/summary.json not found, check the execution of the K6 script");
+            LOG.error(e.getMessage());
+            return;
+        }
         testCase.setJsonExecutionResultsMap(summaryJsonContent);
-        Files.createFile(Path.of(resultDir + "/report.html"));
-        File htmlFile = new File(resultDir + "/report.html");
-        Reporter reporter = TestParser.parseReporter(testCase);
-        reporter.report(htmlFile, testCase);
+        try {
+            Files.createFile(Path.of(testCase.getOutputDir() + "/report.html"));
+        } catch (IOException e) {
+            LOG.error("Aborting the creation of the report");
+            LOG.error(e.getMessage());
+            return;        }
+        Reporter reporter = null;
+        try {
+            reporter = TestParser.parseReporter(testCase);
+            reporter.report(testCase);
+        } catch (Exception e) {
+            LOG.error("Aborting the creation of the report");
+            LOG.error(e.getMessage());
+        }
     }
 
-    private void initDirectories(String testCaseName) throws IOException {
-        Path dir = Paths.get(testCaseName);
+    private void initDirectories(TestCase testCase) throws IOException {
+        Path dir = Path.of(testCase.getOutputDir());
         if (Files.exists(dir)) {
             try {
                 Files.walk(dir)
@@ -75,12 +118,12 @@ public class K6TestExecutor implements Executor {
         } else Files.createDirectories(dir);
     }
 
-    private List<String> getShellCommands(K6ExecConfig k6ExecConfig, String resultDir) throws IOException {
+    private List<String> getShellCommands(K6ExecConfig k6ExecConfig, TestCase testCase) throws IOException, URISyntaxException {
         List<String> shellCommands = new ArrayList<>(List.of("k6 run"));
-        Path file = Files.createFile(Path.of(resultDir + "/summary.json"));
+        Path file = Files.createFile(Path.of(testCase.getOutputDir() + "/summary.json"));
         k6ExecConfig.getK6Options().put("summary-export", String.valueOf(file.toAbsolutePath()));
-        for(Map.Entry<String, Object> optionsEntry : k6ExecConfig.getK6Options().entrySet()) {
-            if(optionsEntry.getValue().toString().matches("true|false")){
+        for (Map.Entry<String, Object> optionsEntry : k6ExecConfig.getK6Options().entrySet()) {
+            if (optionsEntry.getValue().toString().matches("true|false")) {
                 if (optionsEntry.getValue().toString().equals("true"))
                     shellCommands.add("--" + optionsEntry.getKey());
                 continue;
@@ -88,21 +131,18 @@ public class K6TestExecutor implements Executor {
             shellCommands.add("--" + optionsEntry.getKey() + " " + optionsEntry.getValue());
         }
 
-        for(Map.Entry<String, String> optionsEntry : k6ExecConfig.getK6EnvironmentVariables().entrySet()){
+        for (Map.Entry<String, String> optionsEntry : k6ExecConfig.getK6EnvironmentVariables().entrySet()) {
             shellCommands.add("-e " + optionsEntry.getKey() + "=" + optionsEntry.getValue());
         }
 
         boolean summaryDisplay = k6ExecConfig.isSummary();
-        if(!summaryDisplay) shellCommands.add("--no-summary");
+        if (!summaryDisplay) shellCommands.add("--no-summary");
         URL resourceUrl = K6TestExecutor.class.getClassLoader().getResource(k6ExecConfig.getK6JSONFilePath());
         if (resourceUrl != null) {
             Path resourcePath;
-            try {
-                resourcePath = Paths.get(resourceUrl.toURI());
-                shellCommands.add(resourcePath.toAbsolutePath().toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            resourcePath = Paths.get(resourceUrl.toURI());
+            shellCommands.add(resourcePath.toAbsolutePath().toString());
+
         } else {
             System.err.println("Resource not found");
         }

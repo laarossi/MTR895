@@ -9,7 +9,6 @@ import java.util.HashMap;
 @Setter
 public class Request {
 
-    private String path;
     private String host;
     private String method;
     private HashMap<String, String> headers = new HashMap<>();

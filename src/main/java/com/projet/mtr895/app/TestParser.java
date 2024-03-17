@@ -6,15 +6,18 @@ import com.projet.mtr895.app.engine.executor.Executor;
 import com.projet.mtr895.app.engine.executor.api.K6TestExecutor;
 import com.projet.mtr895.app.engine.executor.ui.SeleniumTestExecutor;
 import com.projet.mtr895.app.engine.parser.ConfigParser;
+import com.projet.mtr895.app.engine.parser.api.LoadTestConfigParser;
 import com.projet.mtr895.app.engine.parser.api.SmokeTestConfigParser;
 import com.projet.mtr895.app.engine.parser.ui.SeleniumConfigParser;
-import com.projet.mtr895.app.engine.reporter.K6HTMLReporter;
+import com.projet.mtr895.app.engine.reporter.api.K6Reporter;
 import com.projet.mtr895.app.engine.reporter.Reporter;
+import com.projet.mtr895.app.engine.reporter.ui.SeleniumReporter;
 import com.projet.mtr895.app.entities.Request;
 import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.ExecConfig;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +29,20 @@ public class TestParser {
     private static final Logger LOG = (Logger) LoggerFactory.getLogger(Mtr895Application.class);
 
     static {
+        // parser configuration map
         testConfigParsersMap.put("api.smoke", SmokeTestConfigParser.class);
-        testExecutorsMap.put("api.smoke", K6TestExecutor.class);
-        htmlReportGenerator.put("api.smoke", K6HTMLReporter.class);
+        testConfigParsersMap.put("api.load", LoadTestConfigParser.class);
         testConfigParsersMap.put("ui.simple", SeleniumConfigParser.class);
-        testExecutorsMap.put("ui.simple", SeleniumTestExecutor.class);
-//        htmlReportGenerator.put("ui.simple", K6HTMLReporter.class);
 
+        // executor configuration map
+        testExecutorsMap.put("api.smoke", K6TestExecutor.class);
+        testExecutorsMap.put("api.load", K6TestExecutor.class);
+        testExecutorsMap.put("ui.simple", SeleniumTestExecutor.class);
+
+        // report generator map
+        htmlReportGenerator.put("ui.simple", SeleniumReporter.class);
+        htmlReportGenerator.put("api.smoke", K6Reporter.class);
+        htmlReportGenerator.put("api.load", K6Reporter.class);
     }
 
     public static Executor parseExecutor(TestCase testCase) throws Exception {
@@ -48,14 +58,10 @@ public class TestParser {
         }
 
         String host = (String) requestJSONMap.getOrDefault("host", null),
-                path = (String) requestJSONMap.getOrDefault("path", null),
                 method = (String) requestJSONMap.getOrDefault("method", null);
 
         if (host == null || host.isEmpty())
             throw new Exception("Request [host] parameter must be provided");
-
-        if (path == null || path.isEmpty())
-            throw new Exception("Request [path] parameter must be provided");
 
         if (method == null || method.isEmpty())
             throw new Exception("Request [method] parameter must be provided");
@@ -63,7 +69,6 @@ public class TestParser {
         Request request = new Request();
         request.setHost(host);
         request.setMethod(method);
-        request.setPath(path.equals("/") ? "" : path);
         HashMap<String, Object> headers;
         try{
             headers = (HashMap<String, Object>) requestJSONMap.get("headers");

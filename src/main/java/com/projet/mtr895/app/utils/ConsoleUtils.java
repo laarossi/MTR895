@@ -43,7 +43,7 @@ public class ConsoleUtils {
         LOG.warn("Exited with error code: " + exitCode);
     }
 
-    public static void run(String sh, File file) throws IOException, InterruptedException {
+    public static boolean run(String sh, File file) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(sh.split("\\s+"));
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
@@ -59,6 +59,7 @@ public class ConsoleUtils {
         fileOutputStream.close();
         int exitCode = process.waitFor();
         LOG.warn("Exited with error code: " + exitCode);
+        return exitCode == 0;
     }
 
 
