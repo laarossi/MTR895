@@ -47,12 +47,46 @@ public class SeleniumTestExecutor implements Executor {
                 .toLowerCase()
                 .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
         initDirectories(testCaseDir, outputDirectory);
-        testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toString());
-        File file = new File(Files.createFile(Path.of(outputDirectory, testCaseDir + "/summary.json")).toUri());
+        testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toAbsolutePath().toString());
+        File file = new File(Files.createFile(Path.of(testCase.getOutputDir(), "summary.json")).toUri());
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         fileOutputStream.write(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(jsonResultObject));
         testCase.setJsonExecutionResultsMap(jsonResultObject);
         fileOutputStream.close();
+        return testCaseResult;
+    }
+
+    @Override
+    public boolean executeTestCase(TestCase testCase) {
+        SeleniumExecConfig execConfig = (SeleniumExecConfig) testCase.getExecConfig();
+        jsonResultObject.put("name", testCase.getName());
+        ChromeOptions chromeOptions = parseWebDriverOptions(execConfig);
+        JSONArray tempArrayList = new JSONArray();
+        if (performChecks(testCase, chromeOptions, execConfig, tempArrayList).contains(false)) testCaseResult = false;
+        jsonResultObject.put("checks", tempArrayList);
+        tempArrayList = new JSONArray();
+        performEvents(testCase, chromeOptions, execConfig, tempArrayList);
+        jsonResultObject.put("events", tempArrayList);
+        String testCaseDir = testCase.getName()
+                .toLowerCase()
+                .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
+        testCase.setOutputDir(String.valueOf(Path.of(testCaseDir).toAbsolutePath()));
+        File file = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            initDirectories(testCaseDir, testCase.getOutputDir());
+            file = new File(Files.createFile(Path.of(testCase.getOutputDir(), "summary.json")).toUri());
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(jsonResultObject));
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected Error, failed loading the test case");
+        }
+        testCase.setJsonExecutionResultsMap(jsonResultObject);
+        try {
+            fileOutputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected Error, failed loading the test case");
+        }
         return testCaseResult;
     }
 

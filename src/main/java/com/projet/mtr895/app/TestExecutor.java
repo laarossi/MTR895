@@ -7,7 +7,6 @@ import com.projet.mtr895.app.entities.TestSuite;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -41,9 +40,16 @@ public class TestExecutor {
         return testSuites;
     }
 
-    public static boolean runTests(List<String> testingDirectories, String outputDir) throws Exception {
+    public static TestCase loadTest(Map<String, Object> testSuiteJSONData) throws Exception {
+        TestCase testCase = TestLoader.loadTestCase(testSuiteJSONData);
+        if (testCase == null) return null;
+        testCase.setExecConfig(TestParser.parseExecConfig(testCase));
+        return testCase;
+    }
+
+    public static List<TestCase> runTests(List<String> testingDirectories, String outputDir) throws Exception {
         HashSet<TestSuite> testSuites = loadTests(testingDirectories);
-        boolean status = true;
+        List<TestCase> failedTestCases = new ArrayList<>();
         for (TestSuite testSuite : testSuites){
             LOG.info("Loading TestSuite[" + testSuite.getTestSuiteName() + "] .......");
             if(testSuite.getTestCases() == null || testSuite.getTestCases().isEmpty()){
@@ -57,14 +63,18 @@ public class TestExecutor {
                 try {
                     Executor testCaseExecutor = TestParser.parseExecutor(testCase);
                     boolean testCaseStatus = testCaseExecutor.run(testCase, outputDir);
-                    status = testCaseStatus && status;
+                    if (!testCaseStatus) failedTestCases.add(testCase);
                 }catch (Exception e){
                     e.printStackTrace();
                     LOG.error("Skipping the execution of the TestCase#" + testCase.getId());
                 }
             }
         }
-        return status;
+        return failedTestCases;
     }
 
+    public static boolean runTest(TestCase testCase) throws Exception {
+        Executor testCaseExecutor = TestParser.parseExecutor(testCase);
+        return testCaseExecutor.run(testCase);
+    }
 }

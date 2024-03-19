@@ -3,8 +3,15 @@ package com.projet.mtr895.runtime;
 import ch.qos.logback.classic.Logger;
 import com.projet.mtr895.app.TestExecutor;
 import com.projet.mtr895.app.TestLoader;
+import com.projet.mtr895.app.entities.TestCase;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,6 +48,25 @@ public class ConsoleRuntime implements RuntimeWrapper{
         } else {
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
-        System.exit(TestExecutor.runTests(List.of(testingDirectories), outputDir) ? 0 : 1);
+        List<TestCase> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir);
+        if (testCases.isEmpty()){
+            LOG.info("Executed successfully all test suites.");
+            System.exit(0);
+        }
+        Path executionResults = Path.of(outputDir, "execution_results");
+        if(Files.exists(executionResults)){
+            Files.delete(executionResults);
+        }
+        File failFile = Files.createFile(executionResults).toFile();
+        DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(failFile));
+        testCases.forEach(t ->{
+            LOG.error("TestCase : " + t.getName() + ", Result directory : " + t.getOutputDir() + " Failed");
+            try {
+                dataOutputStream.write((t.getName() +  " " + t.getOutputDir() + "\n").getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        dataOutputStream.close();
     }
 }

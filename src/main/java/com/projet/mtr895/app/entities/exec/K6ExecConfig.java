@@ -16,7 +16,7 @@ public class K6ExecConfig implements ExecConfig{
     private Map<String, Object> k6Options = new HashMap<>();
     private Map<String, String> K6EnvironmentVariables = new HashMap<>();
     private HTTPResponse expectedHTTPResponse;
-    static class HTTPResponse{
+    public static class HTTPResponse{
         public Map<String, String> headers = new HashMap<>();
         public String payload;
         public int status;

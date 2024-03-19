@@ -6,6 +6,7 @@ import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.TestSuite;
 import lombok.Getter;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,12 +23,36 @@ public class TestLoader {
 
     public static TestSuite loadTestSuite(String testSuiteJSONFile) throws Exception {
         File loadedTestSuiteFile = new File(testSuiteJSONFile);
-        if(Files.isDirectory(loadedTestSuiteFile.toPath())){
-          LOG.warn("The File provided is a directory.");
-          return null;
+        if (Files.isDirectory(loadedTestSuiteFile.toPath())) {
+            LOG.warn("The File provided is a directory.");
+            return null;
         }
         LOG.info("TestSuite : " + loadedTestSuiteFile);
         return new TestSuite(loadedTestSuiteFile.getParent(), loadedTestSuiteFile.getName(), loadTestCases(loadedTestSuiteFile));
+    }
+
+    public static TestCase loadTestCase(Map<String, Object> testCase) {
+        Map<String, Object> execConfigDataMap = (Map<String, Object>) testCase.getOrDefault("exec", new HashMap<>());
+        TestCase tc = new TestCase();
+        tc.setId(0);
+        tc.setName((String) testCase.getOrDefault("name", "TestCase#" + tc.getId()));
+        try {
+            tc.setRequest(TestParser.parseRequest((Map<String, Object>) testCase.get("request")));
+        } catch (Exception e) {
+            LOG.error("Skipping TestCase#" + tc.getId());
+            LOG.error(e.getLocalizedMessage());
+            return null;
+        }
+        tc.setExecConfigJSONMap(execConfigDataMap);
+        try {
+            if (!isTypeValid((String) execConfigDataMap.get("type")))
+                throw new Exception("Type parameter required in the exec configuration");
+            tc.setType((String) execConfigDataMap.get("type"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.error("Skipping TestCase#" + tc.getId());
+        }
+        return tc;
     }
 
     private static HashSet<TestCase> loadTestCases(File testSuiteJSONFile) {
@@ -42,7 +67,7 @@ public class TestLoader {
         for (Map<String, Object> testCase : testCasesJSONObjects) {
             Map<String, Object> execConfigDataMap = (Map<String, Object>) testCase.get("exec");
             LOG.info("Loading TestCase#" + i);
-            TestCase tc =  new TestCase();
+            TestCase tc = new TestCase();
             tc.setId(i++);
             tc.setName((String) testCase.getOrDefault("name", "TestCase#" + tc.getId()));
             tc.setTestSuiteFile(testSuiteJSONFile.getAbsolutePath());
@@ -55,7 +80,7 @@ public class TestLoader {
             }
             tc.setExecConfigJSONMap(execConfigDataMap);
             try {
-                if(!isTypeValid((String) execConfigDataMap.get("type")))
+                if (!isTypeValid((String) execConfigDataMap.get("type")))
                     throw new Exception("Type parameter required in the exec configuration");
                 tc.setType((String) execConfigDataMap.get("type"));
                 testCases.add(tc);
@@ -73,8 +98,5 @@ public class TestLoader {
         Matcher matcher = pattern.matcher(execType.toLowerCase());
         return matcher.matches();
     }
-
-
-
 
 }

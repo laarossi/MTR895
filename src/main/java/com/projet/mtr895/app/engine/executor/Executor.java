@@ -10,7 +10,15 @@ public interface Executor {
         return statusTestCase;
     }
 
+    default boolean run(TestCase testCase) throws Exception {
+        boolean statusTestCase = executeTestCase(testCase);
+        generateReport(testCase);
+        return statusTestCase;
+    }
+
     boolean executeTestCase(TestCase testCase, String outputDir) throws Exception;
+
+    boolean executeTestCase(TestCase testCase) throws Exception;
 
     void generateReport(TestCase testCase) throws Exception;
 

@@ -9,9 +9,13 @@ import java.util.HashSet;
 @Setter
 public class TestSuite {
 
-    private final String dirName;
-    private final String testSuiteName;
-    private final HashSet<TestCase> testCases;
+    private String dirName;
+    private String testSuiteName;
+    private HashSet<TestCase> testCases;
+
+    public TestSuite(){
+
+    }
 
     public TestSuite(String dirName, String testSuiteName, HashSet<TestCase> testCases){
         this.dirName = dirName;
