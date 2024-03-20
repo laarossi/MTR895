@@ -68,7 +68,7 @@ public class ConsoleRuntime implements RuntimeWrapper{
         testCases.forEach((k, v) ->{
             LOG.error("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed"));
             try {
-                dataOutputStream.write(("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed")).getBytes());
+                dataOutputStream.write(("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed\n")).getBytes());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
