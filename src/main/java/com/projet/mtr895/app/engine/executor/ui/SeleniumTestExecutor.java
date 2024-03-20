@@ -47,7 +47,7 @@ public class SeleniumTestExecutor implements Executor {
                 .toLowerCase()
                 .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
         initDirectories(testCaseDir, outputDirectory);
-        testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toAbsolutePath().toString());
+        testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toString());
         File file = new File(Files.createFile(Path.of(testCase.getOutputDir(), "summary.json")).toUri());
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         fileOutputStream.write(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(jsonResultObject));
@@ -70,7 +70,7 @@ public class SeleniumTestExecutor implements Executor {
         String testCaseDir = testCase.getName()
                 .toLowerCase()
                 .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
-        testCase.setOutputDir(String.valueOf(Path.of(testCaseDir).toAbsolutePath()));
+        testCase.setOutputDir(String.valueOf(Path.of(testCaseDir)));
         File file = null;
         FileOutputStream fileOutputStream = null;
         try {

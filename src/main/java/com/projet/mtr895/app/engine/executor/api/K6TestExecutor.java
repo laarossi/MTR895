@@ -55,7 +55,7 @@ public class K6TestExecutor implements Executor {
                 .toLowerCase()
                 .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
 
-        testCase.setOutputDir(String.valueOf(Path.of(outputDir, resultDir).toAbsolutePath()));
+        testCase.setOutputDir(String.valueOf(Path.of(outputDir, resultDir)));
         try {
             initDirectories(testCase);
             List<String> shellCommands = getShellCommands(testCase);
@@ -101,7 +101,7 @@ public class K6TestExecutor implements Executor {
                 .toLowerCase()
                 .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
 
-        testCase.setOutputDir(String.valueOf(Path.of(resultDir).toAbsolutePath()));
+        testCase.setOutputDir(String.valueOf(Path.of(resultDir)));
         try {
             initDirectories(testCase);
             Map<String, Object> execDataMap = testCase.getExecConfigJSONMap();
@@ -202,7 +202,7 @@ public class K6TestExecutor implements Executor {
 
         boolean summaryDisplay = k6ExecConfig.isSummary();
         if (!summaryDisplay) shellCommands.add("--no-summary");
-        String scriptPath = Path.of(testCase.getConfigDir(), k6ExecConfig.getK6JSONFilePath()).toAbsolutePath().toString();
+        String scriptPath = Path.of(testCase.getConfigDir(), k6ExecConfig.getK6JSONFilePath()).toString();
         shellCommands.add(scriptPath);
         return shellCommands;
     }

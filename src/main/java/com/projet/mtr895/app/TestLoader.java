@@ -70,7 +70,7 @@ public class TestLoader {
             TestCase tc = new TestCase();
             tc.setId(i++);
             tc.setName((String) testCase.getOrDefault("name", "TestCase#" + tc.getId()));
-            tc.setTestSuiteFile(testSuiteJSONFile.getAbsolutePath());
+            tc.setTestSuiteFile(String.valueOf(testSuiteJSONFile));
             try {
                 tc.setRequest(TestParser.parseRequest((Map<String, Object>) testCase.get("request")));
             } catch (Exception e) {

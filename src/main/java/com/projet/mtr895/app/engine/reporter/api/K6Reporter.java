@@ -107,7 +107,7 @@ public class K6Reporter implements Reporter {
 
     private void includeTestLogs(DataOutputStream dataOutputStream, TestCase testCase) throws IOException {
         List<String> logs = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new FileReader(Path.of(testCase.getOutputDir() + "/logs").toAbsolutePath().toFile()));
+        BufferedReader reader = new BufferedReader(new FileReader(Path.of(testCase.getOutputDir() + "/logs").toFile()));
         String line = reader.readLine();
         while (line != null) {
             if (line.startsWith("time="))

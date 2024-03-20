@@ -129,7 +129,7 @@ public class SeleniumReporter implements Reporter {
         dataOutputStream.write(("" +
                 "<div class='header'>" +
                 "   <p>" + testCase.getName() + "</p>" +
-                "   <a href=\"" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "\" class='outputhir'>" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "</a>" +
+                "   <a href=\"" + Path.of(testCase.getOutputDir()) + "\" class='outputhir'>" + Path.of(testCase.getOutputDir()).toAbsolutePath() + "</a>" +
                 "</div>").getBytes());
     }
 
