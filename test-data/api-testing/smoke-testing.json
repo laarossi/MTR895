@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Smoke Test Get All Books",
+    "request": {
+      "host": "http://localhost:8989/books/1",
+      "method": "GET",
+      "headers" : {
+        "X*AUTHENTICATION" : "dqwdq"
+      }
+    },
+    "exec": {
+      "type": "api.smoke",
+      "vus": "1",
+      "iterations": "2",
+      "insecure-skip-tls-verify": true,
+      "include-system-env-vars": true,
+      "max-redirects": 10,
+      "no-connection-reuse": false,
+      "no-vu-connection-reuse": false,
+      "output": {
+        "summary": true
+      },
+      "response" : {
+        "payload" : "/home/youssef-laarossi/Documents/MTR895/test-data/payloads/payload_api_1.json",
+        "status" : 200
+      },
+      "thresholds" : [
+        {
+          "metric" : "http_req_duration",
+          "values" : [
+            "p(95)<200"
+          ]
+        }
+      ]
+    }
+  }
+]
