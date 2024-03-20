@@ -58,7 +58,8 @@ public class TestParser {
         }
 
         String host = (String) requestJSONMap.getOrDefault("host", null),
-                method = (String) requestJSONMap.getOrDefault("method", null);
+                method = (String) requestJSONMap.getOrDefault("method", null),
+                payload = (String) requestJSONMap.getOrDefault("payload", null);
 
         if (host == null || host.isEmpty())
             throw new Exception("Request [host] parameter must be provided");
@@ -69,6 +70,7 @@ public class TestParser {
         Request request = new Request();
         request.setHost(host);
         request.setMethod(method);
+        request.setPayload(payload);
         HashMap<String, Object> headers;
         try{
             headers = (HashMap<String, Object>) requestJSONMap.get("headers");
