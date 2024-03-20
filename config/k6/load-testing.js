@@ -26,7 +26,9 @@ if (__ENV.request) {
     req_vars = JSON.parse(req_vars);
     host = req_vars.host;
     method = req_vars.method;
-    payload = req_vars.payload;
+    if(req_vars.payload){
+        payload = req_vars.payload;
+    }
     headers = req_vars.headers;
 }
 
@@ -39,7 +41,7 @@ if (__ENV.response) {
     response = JSON.parse(__ENV.response) || '{}'
 }
 
-if (response.payload) {
+if (response && response.payload){
     responsePayload = JSON.parse(open(response.payload));
 }
 

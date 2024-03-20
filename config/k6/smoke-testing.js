@@ -37,7 +37,7 @@ if (__ENV.response){
     response = JSON.parse(__ENV.response) || '{}'
 }
 
-if (response){
+if (response && response.payload){
     responsePayload = JSON.parse(open(response.payload));
 }
 
