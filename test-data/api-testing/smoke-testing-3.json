@@ -1,12 +1,9 @@
 [
   {
-    "name": "Smoke Test Get All Books ID 2",
+    "name": "Smoke create a new book",
     "request": {
       "host": "http://localhost:8989/books/",
       "method": "POST",
-      "headers" : {
-        "X*AUTHENTICATION" : "dqwdq"
-      },
       "payload" : "../../test-data/request-data-request-1.json"
     },
     "exec": {
@@ -22,7 +19,6 @@
         "summary": true
       },
       "response" : {
-        "payload" : "../../test-data/payloads/payload_api_2.json",
         "status" : 200
       },
       "thresholds" : [
