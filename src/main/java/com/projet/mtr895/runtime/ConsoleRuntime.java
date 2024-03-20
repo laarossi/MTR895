@@ -44,7 +44,7 @@ public class ConsoleRuntime implements RuntimeWrapper{
 
         System.out.println("Test directories: " + Arrays.toString(testingDirectories));
         if (outputDir != null) {
-            System.out.println("Using default Output directory");
+            System.out.println("Using " + outputDir + " as output directory");
         } else {
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
