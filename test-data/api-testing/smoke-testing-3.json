@@ -25,7 +25,7 @@
         "status" : 200,
         "payload" : "../../test-data/request-data/request-1.json",
         "headers" : {
-          "Book-Id" : 99
+          "Book-Id" : "99"
         }
       },
       "thresholds" : [
