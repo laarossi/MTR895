@@ -55,22 +55,9 @@ public class ConsoleRuntime implements RuntimeWrapper{
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
         Map<String, Boolean> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir, configDir);
-        Path executionResults = Path.of(outputDir, "execution_results");
-        if(Files.exists(executionResults)){
-            Files.delete(executionResults);
-        }
-        File failFile = Files.createFile(executionResults).toFile();
-        DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(failFile));
-        boolean failed = false;
         testCases.forEach((k, v) ->{
             LOG.info("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed"));
-            try {
-                dataOutputStream.write(("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed\n")).getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         });
-        dataOutputStream.close();
         if(testCases.containsValue(false)){
             System.exit(1);
         }else System.exit(0);
