@@ -38,7 +38,7 @@ if (__ENV.response){
 }
 
 if (response && response.payload){
-    responsePayload = JSON.parse(open(response.payload));
+    responsePayload = open(response.payload);
 }
 
 function compareObjects(o1, o2) {
