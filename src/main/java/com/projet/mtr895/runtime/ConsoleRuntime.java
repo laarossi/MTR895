@@ -55,18 +55,15 @@ public class ConsoleRuntime implements RuntimeWrapper{
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
         Map<String, Boolean> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir, configDir);
-        if (testCases.isEmpty()){
-            LOG.info("Executed successfully all test suites.");
-            System.exit(0);
-        }
         Path executionResults = Path.of(outputDir, "execution_results");
         if(Files.exists(executionResults)){
             Files.delete(executionResults);
         }
         File failFile = Files.createFile(executionResults).toFile();
         DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(failFile));
+        boolean failed = false;
         testCases.forEach((k, v) ->{
-            LOG.error("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed"));
+            LOG.info("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed"));
             try {
                 dataOutputStream.write(("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed\n")).getBytes());
             } catch (IOException e) {
@@ -74,6 +71,8 @@ public class ConsoleRuntime implements RuntimeWrapper{
             }
         });
         dataOutputStream.close();
-        System.exit(1);
+        if(testCases.containsValue(false)){
+            System.exit(1);
+        }else System.exit(0);
     }
 }
