@@ -1,26 +1,27 @@
 [
   {
-    "name": "Load Test Get All Books",
+    "name": "Smoke Test Get All Books ID 1",
     "request": {
-      "host": "http://localhost:8989/books",
-      "method": "GET"
+      "host": "http://localhost:8989/books/1",
+      "method": "GET",
+      "headers" : {
+        "X*AUTHENTICATION" : "dqwdq"
+      }
     },
     "exec": {
-      "type": "api.load",
+      "type": "api.smoke",
+      "vus": "1",
+      "iterations": "2",
       "insecure-skip-tls-verify": true,
       "include-system-env-vars": true,
       "max-redirects": 10,
       "no-connection-reuse": false,
       "no-vu-connection-reuse": false,
-      "startVUs" : 5,
       "output": {
         "summary": true
       },
-      "stages": [
-        { "duration": "0.1m", "target": 5 },
-        { "duration": "0.1m", "target": 10 }
-      ],
       "response" : {
+        "payload" : "../../test-data/payloads/payload_api_1.json",
         "status" : 200
       },
       "thresholds" : [
