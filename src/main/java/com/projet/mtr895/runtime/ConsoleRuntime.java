@@ -73,5 +73,6 @@ public class ConsoleRuntime implements RuntimeWrapper{
             }
         });
         dataOutputStream.close();
+        System.exit(1);
     }
 }
