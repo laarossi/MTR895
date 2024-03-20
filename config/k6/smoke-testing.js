@@ -28,7 +28,7 @@ if (__ENV.request) {
     host = req_vars.host;
     method = req_vars.method;
     headers = req_vars.headers;
-    if(req_vars.payload && req_vars.payload != ""){
+    if(req_vars.payload){
         payload = req_vars.payload;
     }
 }
