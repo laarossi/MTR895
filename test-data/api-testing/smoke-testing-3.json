@@ -4,7 +4,10 @@
     "request": {
       "host": "http://localhost:8989/books",
       "method": "POST",
-      "payload" : "../../test-data/request-data/request-1.json"
+      "payload" : "../../test-data/request-data/request-1.json",
+      "headers" : {
+        "Content-Type" : "application/json"
+      }
     },
     "exec": {
       "type": "api.smoke",
