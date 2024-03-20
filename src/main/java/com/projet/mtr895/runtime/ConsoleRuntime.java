@@ -23,15 +23,20 @@ public class ConsoleRuntime implements RuntimeWrapper{
     public void run(String... args) throws Exception {
         LOG.info("RUNNING APP IN CONSOLE");
         if (args.length < 2 || !args[1].equals("--testDir")) {
-            System.out.println("Usage: java ArgumentChecker --testDir <path1,path2,...> [--outputDir <outputDirectory>]");
+            System.out.println("Usage: java ArgumentChecker --testDir <path1,path2,...> --outputDir <outputDirectory> --configDir <configDirectory>");
             System.exit(1);
         }
 
         String testDirs = args[2];
         String outputDir = null;
+        String configDir = null;
 
         if (args.length >= 4 && args[3].equals("--outputDir")) {
             outputDir = args[4];
+        }
+
+        if (args.length >= 6 && args[5].equals("--configDir")) {
+            configDir = args[6];
         }
 
         String[] testingDirectories = Arrays.stream(testDirs.split(","))
@@ -48,7 +53,7 @@ public class ConsoleRuntime implements RuntimeWrapper{
         } else {
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
-        List<TestCase> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir);
+        List<TestCase> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir, configDir);
         if (testCases.isEmpty()){
             LOG.info("Executed successfully all test suites.");
             System.exit(0);

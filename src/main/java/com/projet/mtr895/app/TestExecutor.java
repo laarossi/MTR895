@@ -47,7 +47,7 @@ public class TestExecutor {
         return testCase;
     }
 
-    public static List<TestCase> runTests(List<String> testingDirectories, String outputDir) throws Exception {
+    public static List<TestCase> runTests(List<String> testingDirectories, String outputDir, String configDir) throws Exception {
         HashSet<TestSuite> testSuites = loadTests(testingDirectories);
         List<TestCase> failedTestCases = new ArrayList<>();
         for (TestSuite testSuite : testSuites){
@@ -61,6 +61,7 @@ public class TestExecutor {
             for (TestCase testCase : testSuite.getTestCases()){
                 LOG.info("Creating Executor for TestCase#" + testCase.getId());
                 try {
+                    testCase.setConfigDir(configDir);
                     Executor testCaseExecutor = TestParser.parseExecutor(testCase);
                     boolean testCaseStatus = testCaseExecutor.run(testCase, outputDir);
                     if (!testCaseStatus) failedTestCases.add(testCase);

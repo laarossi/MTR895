@@ -58,7 +58,7 @@ public class K6TestExecutor implements Executor {
         testCase.setOutputDir(String.valueOf(Path.of(outputDir, resultDir).toAbsolutePath()));
         try {
             initDirectories(testCase);
-            List<String> shellCommands = getShellCommands(k6ExecConfig, testCase.getOutputDir());
+            List<String> shellCommands = getShellCommands(testCase);
             System.out.println(String.join(" ", shellCommands));
             boolean executionStatus = ConsoleUtils.run(String.join(" ", shellCommands), new File(testCase.getOutputDir() + "/logs"));
             File jsonFile = new File(String.valueOf(Path.of(testCase.getOutputDir(), "summary.json")));
@@ -116,7 +116,7 @@ public class K6TestExecutor implements Executor {
                     k6ExecConfig.getK6EnvironmentVariables().put("response", new ObjectMapper().writeValueAsString(httpResponse));
                 }
             }
-            List<String> shellCommands = getShellCommands(k6ExecConfig, testCase.getOutputDir());
+            List<String> shellCommands = getShellCommands(testCase);
             System.out.println(shellCommands);
             boolean executionStatus = ConsoleUtils.run(String.join(" ", shellCommands), new File(testCase.getOutputDir() + "/logs"));
             File jsonFile = new File(String.valueOf(Path.of(testCase.getOutputDir(), "summary.json")));
@@ -182,7 +182,9 @@ public class K6TestExecutor implements Executor {
         } else Files.createDirectories(dir);
     }
 
-    private List<String> getShellCommands(K6ExecConfig k6ExecConfig, String outputDir) throws IOException, URISyntaxException {
+    private List<String> getShellCommands(TestCase testCase) throws IOException, URISyntaxException {
+        K6ExecConfig k6ExecConfig = (K6ExecConfig) testCase.getExecConfig();
+        String outputDir = testCase.getOutputDir();
         List<String> shellCommands = new ArrayList<>(List.of("k6 run"));
         k6ExecConfig.getK6Options().put("summary-export", Path.of(outputDir + "/summary.json").toString());
         for (Map.Entry<String, Object> optionsEntry : k6ExecConfig.getK6Options().entrySet()) {
@@ -200,14 +202,8 @@ public class K6TestExecutor implements Executor {
 
         boolean summaryDisplay = k6ExecConfig.isSummary();
         if (!summaryDisplay) shellCommands.add("--no-summary");
-        URL resourceUrl = K6TestExecutor.class.getClassLoader().getResource(k6ExecConfig.getK6JSONFilePath());
-        if (resourceUrl != null) {
-            Path resourcePath;
-            resourcePath = Paths.get(resourceUrl.toURI());
-            shellCommands.add(resourcePath.toAbsolutePath().toString());
-        } else {
-            System.err.println("Resource not found");
-        }
+        String scriptPath = Path.of(testCase.getConfigDir(), k6ExecConfig.getK6JSONFilePath()).toAbsolutePath().toString();
+        shellCommands.add(scriptPath);
         return shellCommands;
     }
 
