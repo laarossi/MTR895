@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Load Test Get All Books ID 2",
+    "request": {
+      "host": "http://localhost:8989/books/2",
+      "method": "GET"
+    },
+    "exec": {
+      "type": "api.load",
+      "insecure-skip-tls-verify": true,
+      "include-system-env-vars": true,
+      "max-redirects": 10,
+      "no-connection-reuse": false,
+      "no-vu-connection-reuse": false,
+      "startVUs" : 5,
+      "output": {
+        "summary": true
+      },
+      "stages": [
+        { "duration": "0.1m", "target": 2 },
+        { "duration": "0.1m", "target": 3 }
+      ],
+      "response" : {
+        "status" : 200
+      },
+      "thresholds" : [
+        {
+          "metric" : "http_req_duration",
+          "values" : [
+            "p(95)<200"
+          ]
+        },
+        {
+          "metric" : "http_req_waiting",
+          "values" : [
+            "p(95)<0.100"
+          ]
+        }
+      ]
+    }
+  }
+]
