@@ -47,9 +47,9 @@ public class TestExecutor {
         return testCase;
     }
 
-    public static List<TestCase> runTests(List<String> testingDirectories, String outputDir, String configDir) throws Exception {
+    public static Map<String, Boolean> runTests(List<String> testingDirectories, String outputDir, String configDir) throws Exception {
         HashSet<TestSuite> testSuites = loadTests(testingDirectories);
-        List<TestCase> failedTestCases = new ArrayList<>();
+        Map<String, Boolean> testCaseExecutionStatus = new HashMap<>();
         for (TestSuite testSuite : testSuites){
             LOG.info("Loading TestSuite[" + testSuite.getTestSuiteName() + "] .......");
             if(testSuite.getTestCases() == null || testSuite.getTestCases().isEmpty()){
@@ -64,14 +64,14 @@ public class TestExecutor {
                     testCase.setConfigDir(configDir);
                     Executor testCaseExecutor = TestParser.parseExecutor(testCase);
                     boolean testCaseStatus = testCaseExecutor.run(testCase, outputDir);
-                    if (!testCaseStatus) failedTestCases.add(testCase);
+                    testCaseExecutionStatus.put(testCase.getOutputDir(), testCaseStatus);
                 }catch (Exception e){
                     e.printStackTrace();
                     LOG.error("Skipping the execution of the TestCase#" + testCase.getId());
                 }
             }
         }
-        return failedTestCases;
+        return testCaseExecutionStatus;
     }
 
     public static boolean runTest(TestCase testCase) throws Exception {

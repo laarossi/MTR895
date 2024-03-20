@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class ConsoleRuntime implements RuntimeWrapper{
 
@@ -53,7 +54,7 @@ public class ConsoleRuntime implements RuntimeWrapper{
         } else {
             System.out.println("Output directory not specified. Using default location (or handle as needed).");
         }
-        List<TestCase> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir, configDir);
+        Map<String, Boolean> testCases = TestExecutor.runTests(List.of(testingDirectories), outputDir, configDir);
         if (testCases.isEmpty()){
             LOG.info("Executed successfully all test suites.");
             System.exit(0);
@@ -64,10 +65,10 @@ public class ConsoleRuntime implements RuntimeWrapper{
         }
         File failFile = Files.createFile(executionResults).toFile();
         DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(failFile));
-        testCases.forEach(t ->{
-            LOG.error("TestCase : " + t.getName() + ", Result directory : " + t.getOutputDir() + " Failed");
+        testCases.forEach((k, v) ->{
+            LOG.error("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed"));
             try {
-                dataOutputStream.write((t.getName() +  " " + t.getOutputDir() + "\n").getBytes());
+                dataOutputStream.write(("TestCase : " + k + " | status : " + (v ? "Passed" : "Failed")).getBytes());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
