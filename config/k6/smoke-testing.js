@@ -27,8 +27,10 @@ if (__ENV.request) {
     req_vars = JSON.parse(req_vars);
     host = req_vars.host;
     method = req_vars.method;
-    payload = req_vars.payload;
     headers = req_vars.headers;
+    if(req_vars.payload && req_vars.payload != ""){
+        payload = req_vars.payload;
+    }
 }
 
 if (__ENV.response){

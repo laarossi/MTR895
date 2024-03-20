@@ -12,5 +12,6 @@ public class Request {
     private String host;
     private String method;
     private HashMap<String, String> headers = new HashMap<>();
+    private String payload;
 
 }
