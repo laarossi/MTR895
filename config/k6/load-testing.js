@@ -10,7 +10,6 @@ let method = null;
 let payload = null;
 let headers = null;
 let stagesJSON = __ENV.stages || {};
-let startVUs = __ENV.startVUs || 5;
 let responsePayload = null;
 let thresholds = '{}';
 let statusError = false;
@@ -49,8 +48,7 @@ thresholds.checks = ['rate>=1']
 
 export const options = {
     thresholds: thresholds,
-    stages: stagesJSON,
-    startVUs: startVUs
+    stages: stagesJSON
 }
 
 

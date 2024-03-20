@@ -12,7 +12,6 @@
       "max-redirects": 10,
       "no-connection-reuse": false,
       "no-vu-connection-reuse": false,
-      "startVUs" : 5,
       "output": {
         "summary": true
       },
