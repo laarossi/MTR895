@@ -29,7 +29,7 @@ if (__ENV.request) {
     method = req_vars.method;
     headers = req_vars.headers;
     if(req_vars.payload){
-        payload = JSON.parse(open(req_vars.payload));
+        payload = open(req_vars.payload);
     }
 }
 
@@ -38,7 +38,7 @@ if (__ENV.response){
 }
 
 if (response && response.payload){
-    responsePayload = open(response.payload);
+    responsePayload = JSON.parse(open(response.payload));
 }
 
 function compareObjects(o1, o2) {
