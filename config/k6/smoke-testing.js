@@ -69,6 +69,7 @@ export default function () {
             if(!compareObjects(rspJson, responsePayload))
                 if(!payloadError){
                     console.error("Not matching payload");
+                    console.log("response : ", res.json());
                 }
             return compareObjects(rspJson, responsePayload);
         },
@@ -79,6 +80,7 @@ export default function () {
                 if (actualValue === undefined) {
                     if(!headersError){
                         console.error(`${expectedHeader} not found in the response headers`);
+                        console.error("Headers : ", res.headers)
                     }
                     return false;
                 } else if (actualValue !== expectedValue) {
