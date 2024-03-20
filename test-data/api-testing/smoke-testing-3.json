@@ -22,7 +22,11 @@
         "summary": true
       },
       "response" : {
-        "status" : 200
+        "status" : 200,
+        "payload" : "../../test-data/request-data/request-1.json",
+        "headers" : {
+          "Book-ID" : 99
+        }
       },
       "thresholds" : [
         {
