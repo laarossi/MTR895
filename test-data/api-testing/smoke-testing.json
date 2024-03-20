@@ -21,7 +21,7 @@
         "summary": true
       },
       "response" : {
-        "payload" : "/home/youssef-laarossi/Documents/MTR895/test-data/payloads/payload_api_1.json",
+        "payload" : "/test-data/payloads/payload_api_1.json",
         "status" : 200
       },
       "thresholds" : [
