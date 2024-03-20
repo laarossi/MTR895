@@ -21,7 +21,7 @@
         "summary": true
       },
       "response" : {
-        "payload" : "/test-data/payloads/payload_api_1.json",
+        "payload" : "../../test-data/payloads/payload_api_1.json",
         "status" : 200
       },
       "thresholds" : [
