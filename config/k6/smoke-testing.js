@@ -29,7 +29,7 @@ if (__ENV.request) {
     method = req_vars.method;
     headers = req_vars.headers;
     if(req_vars.payload){
-        payload = req_vars.payload;
+        payload = JSON.parse(open(req_vars.payload));
     }
 }
 
