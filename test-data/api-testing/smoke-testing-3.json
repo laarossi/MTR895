@@ -3,7 +3,7 @@
     "name": "Smoke Test Get All Books ID 2",
     "request": {
       "host": "http://localhost:8989/books/",
-      "method": "GET",
+      "method": "POST",
       "headers" : {
         "X*AUTHENTICATION" : "dqwdq"
       },
