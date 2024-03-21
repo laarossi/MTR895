@@ -1,0 +1,26 @@
+[
+  {
+    "name" : "Test Case UI 2",
+    "request" : {
+      "host": "https://jcp.org/en/home/index",
+      "method": "get"
+    },
+    "exec" : {
+      "type" : "ui.simple",
+      "webDriver" : "chrome",
+      "options" : {
+        "acceptInsecureCerts" : false,
+        "pageLoadStrategy" : "eager",
+        "timeouts" : 500
+      },
+      "checks" : [
+        {
+          "element" : "//img[@alt='My JCP']",
+          "selector" : "xPath",
+          "attribute" : "src",
+          "attributeValue" : "https://jcp.org/images/hd_my-jcp.gif"
+        }
+      ]
+    }
+  }
+]
