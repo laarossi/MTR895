@@ -146,6 +146,8 @@ public class SeleniumTestExecutor implements Executor {
                     selector = (String) check.getOrDefault("selector", "cssSelector"),
                     value = (String) check.getOrDefault("value", null),
                     className = (String) check.getOrDefault("className", null),
+                    attribute = (String) check.getOrDefault("attribute", null),
+                    attributeValue = (String) check.getOrDefault("attributeValue", null),
                     id = (String) check.getOrDefault("id", null),
                     logMessage = "";
 
@@ -174,11 +176,12 @@ public class SeleniumTestExecutor implements Executor {
 
                 default:
                     WebElement webElement;
-                    if (selector.equals("xPath"))
+                    if (selector.equals("xPath")) {
                         webElement = webDriver.findElement(By.xpath(element));
-                    else
+                        LOG.info(String.valueOf(webElement == null));
+                    }else {
                         webElement = webDriver.findElement(By.cssSelector(element));
-
+                    }
                     if (webElement == null) {
                         LOG.error("Element " + element + " not found, checking of the element aborted");
                         this.testCaseResult = false;
@@ -193,13 +196,20 @@ public class SeleniumTestExecutor implements Executor {
                     }
                     if (className != null) {
                         isCheckedSuccessfully = webElement.getAttribute("class").equals(className) && isCheckedSuccessfully;
-                        checkResult.put("currentValue", webElement.getAttribute("class"));
-                        logMessage += ", current className : " + webElement.getAttribute("class") + ", expected className : " + className;
+                        checkResult.put("currentClassname", webElement.getAttribute("class"));
+                        logMessage += ", current classname : " + webElement.getAttribute("class") + ", expected classname : " + className;
                     }
                     if (id != null) {
                         isCheckedSuccessfully = webElement.getAttribute("id").equals(id) && isCheckedSuccessfully;
-                        checkResult.put("currentValue", webElement.getAttribute("id"));
+                        checkResult.put("currentID", webElement.getAttribute("id"));
                         logMessage += ", current id : " + webElement.getAttribute("id") + ", expected id : " + id;
+                    }
+
+                    if(attribute != null){
+                        String attr = webElement.getAttribute(attribute);
+                        isCheckedSuccessfully = attr.equals(attributeValue) && isCheckedSuccessfully;
+                        logMessage += ", expected attribute[" + attribute + "] value : " + attributeValue + ", current value = " + webElement.getAttribute(attribute);
+                        checkResult.put("currentAttributeValue", webElement.getAttribute(attribute));
                     }
                     break;
             }

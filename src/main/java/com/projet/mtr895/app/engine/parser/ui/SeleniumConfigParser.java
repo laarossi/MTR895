@@ -60,7 +60,7 @@ public class SeleniumConfigParser implements ConfigParser {
             seleniumActions.add(seleniumAction);
         }
         execConfig.setSeleniumAction(seleniumActions);
-        execConfig.setChecks((List<Map<String, Object>>) execDataMap.getOrDefault("check", new ArrayList<Map<String, Object>>()));
+        execConfig.setChecks((List<Map<String, Object>>) execDataMap.getOrDefault("checks", new ArrayList<Map<String, Object>>()));
         return execConfig;
     }
 

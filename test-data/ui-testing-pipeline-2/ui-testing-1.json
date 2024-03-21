@@ -1,0 +1,42 @@
+[
+  {
+    "name" : "Test Case UI 1",
+    "request" : {
+      "host": "https://www.selenium.dev/documentation/webdriver/actions_api/mouse/",
+      "method": "get"
+    },
+    "exec" : {
+      "type" : "ui.simple",
+      "webDriver" : "chrome",
+      "options" : {
+        "acceptInsecureCerts" : false,
+        "pageLoadStrategy" : "eager",
+        "timeouts" : 500
+      },
+      "checks" : [
+        {
+          "element" : "title",
+          "value" : "Mouse actions | Selenium"
+        }
+      ],
+      "events" : [
+        {
+          "element" : "//span[text()='Downloads']",
+          "selector" : "xPath",
+          "event" : "click",
+          "check-after" : [
+            {
+              "element" : "title",
+              "value" : "Downloads | Selenium"
+            },
+            {
+              "element" : "#bindings",
+              "selector" : "id",
+              "value" : "Selenium Clients and WebDriver Language Bindings"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
