@@ -32,7 +32,7 @@
         {
           "metric" : "http_req_waiting",
           "values" : [
-            "p(95)<0.100"
+            "p(95)<200"
           ]
         }
       ]
