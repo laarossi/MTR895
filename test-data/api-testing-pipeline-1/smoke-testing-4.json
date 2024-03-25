@@ -1,0 +1,68 @@
+[
+  {
+    "name": "Smoke test authorization - empty header",
+    "request": {
+      "host": "http://localhost:8989/books/admin",
+      "method": "GET"
+    },
+    "exec": {
+      "type": "api.smoke",
+      "vus": "1",
+      "iterations": "2",
+      "insecure-skip-tls-verify": true,
+      "include-system-env-vars": true,
+      "max-redirects": 10,
+      "no-connection-reuse": false,
+      "no-vu-connection-reuse": false,
+      "output": {
+        "summary": true
+      },
+      "response" : {
+        "status" : 401
+      },
+      "thresholds" : [
+        {
+          "metric" : "http_req_duration",
+          "values" : [
+            "p(95)<150"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Smoke test authorization - wrong header value",
+    "request": {
+      "host": "http://localhost:8989/books/admin",
+      "method": "GET",
+      "headers" : {
+        "Authorization" : "123456"
+      }
+    },
+    "exec": {
+      "type": "api.smoke",
+      "vus": "1",
+      "iterations": "2",
+      "insecure-skip-tls-verify": true,
+      "include-system-env-vars": true,
+      "max-redirects": 10,
+      "no-connection-reuse": false,
+      "no-vu-connection-reuse": false,
+      "output": {
+        "summary": true
+      },
+      "response" : {
+        "status" : 200,
+        "payload" : "../../test-data/payloads/payload_api_3.json"
+      },
+      "thresholds" : [
+        {
+          "metric" : "http_req_duration",
+          "values" : [
+            "p(95)<150"
+          ]
+        }
+      ]
+    }
+  }
+]

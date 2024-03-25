@@ -46,7 +46,8 @@ public class SeleniumConfigParser implements ConfigParser {
             String elementSelector = (String) action.getOrDefault("element", null),
                     event = (String) action.getOrDefault("event", null),
                     selector = (String) action.getOrDefault("selector", "cssSelector");
-            if (elementSelector == null) {
+            ArrayList<Map<String, Object>> inputs = (ArrayList<Map<String, Object>>) action.getOrDefault("inputs", new ArrayList<>());
+            if (elementSelector == null && inputs.isEmpty()) {
                 throw new Exception("Element selector is null");
             }
             seleniumAction.setElement(elementSelector);
@@ -57,6 +58,7 @@ public class SeleniumConfigParser implements ConfigParser {
             List<Map<String, Object>> afterChecks = (List<Map<String, Object>>) action.getOrDefault("check-after", new ArrayList<>());
             seleniumAction.setBeforeChecks(beforeChecks);
             seleniumAction.setAfterChecks(afterChecks);
+            seleniumAction.setInputs(inputs);
             seleniumActions.add(seleniumAction);
         }
         execConfig.setSeleniumAction(seleniumActions);

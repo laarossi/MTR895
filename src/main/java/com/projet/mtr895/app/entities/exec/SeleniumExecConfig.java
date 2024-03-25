@@ -3,6 +3,7 @@ package com.projet.mtr895.app.entities.exec;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ public class SeleniumExecConfig implements ExecConfig{
         private String event;
         private String element;
         private String selector;
+        private ArrayList<Map<String,Object>> inputs;
         private float wait;
         private List<Map<String, Object>> afterChecks;
         private List<Map<String, Object>> beforeChecks;

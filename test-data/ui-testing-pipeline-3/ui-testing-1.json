@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Test Case UI 2",
+    "request": {
+      "host": "https://www.iconfinder.com/",
+      "method": "get"
+    },
+    "exec": {
+      "type": "ui.simple",
+      "webDriver": "chrome",
+      "options": {
+        "acceptInsecureCerts": false,
+        "pageLoadStrategy": "eager",
+        "timeouts": 500
+      },
+      "events": [
+        {
+          "event": "form-submit",
+          "inputs" : [
+            {"element": "/html/body/header/div/div/div/div/div/div/form/div/input", "selector": "xPath", "value": "School"},
+            {"element": "/html/body/header/div/div/div/div/div/div/form/div/div[2]/button", "selector" : "xPath", "type": "submit"}
+          ],
+          "check-after": [
+            {
+              "element": "title",
+              "value": "313,633 school icons - Iconfinder"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

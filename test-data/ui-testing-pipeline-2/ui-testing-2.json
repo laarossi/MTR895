@@ -20,6 +20,11 @@
           "attribute" : "src",
           "attributeValue" : "https://jcp.org/images/hd_my-jcp.gif"
         }
+      ],
+      "events" : [
+        {
+
+        }
       ]
     }
   }

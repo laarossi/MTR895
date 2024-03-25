@@ -10,11 +10,12 @@ import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.SeleniumExecConfig;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONStyle;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -23,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SeleniumTestExecutor implements Executor {
 
@@ -32,6 +35,7 @@ public class SeleniumTestExecutor implements Executor {
     private boolean testCaseResult = true;
 
     private final JSONObject jsonResultObject = new JSONObject();
+
     @Override
     public boolean executeTestCase(TestCase testCase, String outputDirectory) throws IOException {
         SeleniumExecConfig execConfig = (SeleniumExecConfig) testCase.getExecConfig();
@@ -45,7 +49,8 @@ public class SeleniumTestExecutor implements Executor {
         jsonResultObject.put("events", tempArrayList);
         String testCaseDir = testCase.getName()
                 .toLowerCase()
-                .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));;
+                .replaceAll("\\s+", "_") + "_" + String.format("%04d", new Random().nextInt(10000));
+        ;
         initDirectories(testCaseDir, outputDirectory);
         testCase.setOutputDir(Path.of(outputDirectory, testCaseDir).toString());
         File file = new File(Files.createFile(Path.of(testCase.getOutputDir(), "summary.json")).toUri());
@@ -110,7 +115,7 @@ public class SeleniumTestExecutor implements Executor {
     }
 
     public void generateReport(TestCase testCase) throws Exception {
-        if(testCase.getOutputDir() == null || testCase.getOutputDir().isEmpty()) return;
+        if (testCase.getOutputDir() == null || testCase.getOutputDir().isEmpty()) return;
         Reporter reporter = TestParser.parseReporter(testCase);
         reporter.report(testCase);
     }
@@ -179,7 +184,7 @@ public class SeleniumTestExecutor implements Executor {
                     if (selector.equals("xPath")) {
                         webElement = webDriver.findElement(By.xpath(element));
                         LOG.info(String.valueOf(webElement == null));
-                    }else {
+                    } else {
                         webElement = webDriver.findElement(By.cssSelector(element));
                     }
                     if (webElement == null) {
@@ -205,7 +210,7 @@ public class SeleniumTestExecutor implements Executor {
                         logMessage += ", current id : " + webElement.getAttribute("id") + ", expected id : " + id;
                     }
 
-                    if(attribute != null){
+                    if (attribute != null) {
                         String attr = webElement.getAttribute(attribute);
                         isCheckedSuccessfully = attr.equals(attributeValue) && isCheckedSuccessfully;
                         logMessage += ", expected attribute[" + attribute + "] value : " + attributeValue + ", current value = " + webElement.getAttribute(attribute);
@@ -245,20 +250,30 @@ public class SeleniumTestExecutor implements Executor {
             jsonObject.put("event", action.getEvent());
             jsonObject.put("element", action.getElement());
             jsonObject.put("selector", action.getSelector());
-            WebElement webElement;
-            if (action.getSelector().equals("xPath"))
-                webElement = webDriver.findElement(By.xpath(action.getElement()));
-            else
-                webElement = webDriver.findElement(By.cssSelector(action.getElement()));
+            WebElement webElement = null;
+            if (action.getElement() != null && !action.getElement().isEmpty()) {
+                if (action.getSelector() != null && action.getSelector().equals("xPath"))
+                    webElement = webDriver.findElement(By.xpath(action.getElement()));
+                else
+                    webElement = webDriver.findElement(By.cssSelector(action.getElement()));
 
-            if (webElement == null) {
-                LOG.error("Element " + action.getElement() + " not found, aborting the execution of the event " + action.getEvent());
+                if (webElement == null) {
+                    LOG.error("Element " + action.getElement() + " not found, aborting the execution of the event " + action.getEvent());
+                    jsonObject.put("event-execution-status", false);
+                    webDriver.quit();
+                    testCaseResult = false;
+                    break;
+                }
+
+            } else if (action.getInputs().isEmpty()) {
+                LOG.error("Element not provided, aborting the execution of the event " + action.getEvent());
                 jsonObject.put("event-execution-status", false);
                 webDriver.quit();
                 testCaseResult = false;
                 break;
             }
-            LOG.info("Performing event " + action.getEvent() + " on element " + action.getElement() + "....");
+
+            LOG.info("Performing event " + action.getEvent() + " on " + (action.getInputs().isEmpty() ? action.getElement() : action.getInputs()) + "....");
             switch (action.getEvent()) {
                 case "click":
                     JavascriptExecutor executor = (JavascriptExecutor) webDriver;
@@ -281,6 +296,38 @@ public class SeleniumTestExecutor implements Executor {
 
                 case "move-to-element":
                     new Actions(webDriver).moveToElement(webElement).perform();
+                    break;
+
+                case "form-submit":
+                    action.getInputs().forEach(input -> {
+                        String element = (String) input.getOrDefault("element", null),
+                                selector = (String) input.getOrDefault("selector", null),
+                                value = (String) input.getOrDefault("value", null),
+                                type = (String) input.getOrDefault("type", null);
+                        if (element != null) {
+                            LOG.info("element : " + element + " type : " + type);
+                            WebElement inputElement;
+                            if (selector != null && selector.equals("xPath"))
+                                inputElement = webDriver.findElement(By.xpath(element));
+                            else
+                                inputElement = webDriver.findElement(By.cssSelector(element));
+
+                            if (type != null && type.equals("submit")) {
+                                LOG.info("element : " + element + " type : " + type);
+                                new Actions(webDriver)
+                                        .moveToElement(inputElement)
+                                        .click()
+                                        .perform();
+                            } else {
+                                if (value != null) {
+                                    new Actions(webDriver)
+                                            .moveToElement(inputElement)
+                                            .sendKeys(value)
+                                            .perform();
+                                }
+                            }
+                        }
+                    });
                     break;
 
             }
