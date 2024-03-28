@@ -18,7 +18,7 @@
           "element" : "//img[@alt='My JCP']",
           "selector" : "xPath",
           "attribute" : "src",
-          "attributeValue" : "https://jcp.org/images/hd_my-jcp.gif"
+          "attributeValue" : "https://jcp.org/images/hd_my-jcp.png"
         }
       ]
     }
