@@ -15,7 +15,7 @@ public class TestCase {
     private String testSuiteFile;
     private String type;
     private String outputDir;
-    private String configDir;
+    private String configDir = "";
     private Request request;
     private ExecConfig execConfig;
     private Map<String, Object> execConfigJSONMap;

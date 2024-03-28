@@ -108,11 +108,11 @@ public class K6TestExecutor implements Executor {
             Map<String, Object> httpResponse = (Map<String, Object>) execDataMap.getOrDefault("response", null);
             if (httpResponse != null && httpResponse.containsKey("payload")){
                 String payload = httpResponse.get("payload").toString();
-                if (!payload.toLowerCase().endsWith(".js")) {
+                if (!payload.toLowerCase().endsWith(".json")) {
                     File file = Files.createFile(Path.of(testCase.getOutputDir() + "/payload.json")).toFile();
                     DataOutputStream dataOutputStream = new DataOutputStream(new FileOutputStream(file));
                     dataOutputStream.write(payload.getBytes());
-                    httpResponse.put("payload", Path.of(testCase.getOutputDir() + "/payload.json").toString());
+                    httpResponse.put("payload", Path.of(testCase.getOutputDir() + "/payload.json").toAbsolutePath());
                     k6ExecConfig.getK6EnvironmentVariables().put("response", new ObjectMapper().writeValueAsString(httpResponse));
                 }
             }
