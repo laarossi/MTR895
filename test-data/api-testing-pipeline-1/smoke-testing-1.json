@@ -5,7 +5,8 @@
       "host": "http://localhost:8989/books/1",
       "method": "GET",
       "headers" : {
-        "X*AUTHENTICATION" : "dqwdq"
+        "Content-Type" : "application/json",
+        "Authentication" : "secretKey"
       }
     },
     "exec": {
@@ -22,6 +23,9 @@
       },
       "response" : {
         "payload" : "../../test-data/payloads/payload_api_1.json",
+        "headers" : {
+          "X-App-ID" : 5  
+        },
         "status" : 200
       },
       "thresholds" : [
