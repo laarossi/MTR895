@@ -305,7 +305,6 @@ public class SeleniumTestExecutor implements Executor {
                                 value = (String) input.getOrDefault("value", null),
                                 type = (String) input.getOrDefault("type", null);
                         if (element != null) {
-                            LOG.info("element : " + element + " type : " + type);
                             WebElement inputElement;
                             if (selector != null && selector.equals("xPath"))
                                 inputElement = webDriver.findElement(By.xpath(element));
@@ -313,7 +312,6 @@ public class SeleniumTestExecutor implements Executor {
                                 inputElement = webDriver.findElement(By.cssSelector(element));
 
                             if (type != null && type.equals("submit")) {
-                                LOG.info("element : " + element + " type : " + type);
                                 new Actions(webDriver)
                                         .moveToElement(inputElement)
                                         .click()
