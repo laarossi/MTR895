@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Smoke test - cookies",
+    "request": {
+      "host": "http://localhost:8989/books/cookie",
+      "method": "GET",
+      "cookies": {
+        "user-id": {
+          "value": "220",
+          "replace": true
+        }
+      }
+    },
+    "exec": {
+      "type": "api.smoke",
+      "vus": "1",
+      "iterations": "2",
+      "insecure-skip-tls-verify": true,
+      "include-system-env-vars": true,
+      "max-redirects": 10,
+      "no-connection-reuse": false,
+      "no-vu-connection-reuse": false,
+      "output": {
+        "summary": true
+      },
+      "response": {
+        "status": 200,
+        "payload" : "../../test-data/payloads/payload_api_5.json"
+      },
+      "thresholds": [
+        {
+          "metric": "http_req_duration",
+          "values": [
+            "p(95)<150"
+          ]
+        }
+      ]
+    }
+  }
+]

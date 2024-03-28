@@ -9,9 +9,12 @@ let payload = null;
 let headers = null;
 let responsePayload = null;
 let thresholds = '{}';
+let cookies = null;
+let responseCookies = null;
 let statusError = false;
 let payloadError = false;
 let headersError = false;
+let cookiesError = false;
 
 if (__ENV.thresholds){
     thresholds = JSON.parse(__ENV.thresholds) || '{}'
@@ -27,9 +30,12 @@ if (__ENV.request) {
     req_vars = JSON.parse(req_vars);
     host = req_vars.host;
     method = req_vars.method;
+    payload = req_vars.payload;
     headers = req_vars.headers;
-    if(req_vars.payload){
-        payload = open(req_vars.payload);
+    if (req_vars.cookies) {
+        cookies = req_vars.cookies
+    }else {
+        cookies = JSON.parse('{}')
     }
 }
 
@@ -37,8 +43,12 @@ if (__ENV.response){
     response = JSON.parse(__ENV.response) || '{}'
 }
 
-if (response && response.payload){
+if (__ENV.response && response && response.payload){
     responsePayload = JSON.parse(open(response.payload));
+}
+
+if(__ENV.response && response && response.cookies){
+    responseCookies = response.cookies;
 }
 
 function compareObjects(o1, o2) {
@@ -52,7 +62,13 @@ export default function () {
         console.log("aborting execution missing request data");
         return;
     }
-    const res = http.request(method, host, payload, { headers : headers });
+    let httpCookies = {};
+    if(cookies){
+        for (const [expectedCookie, expectedValue] of Object.entries(cookies)) {
+            httpCookies[expectedCookie] = expectedValue.value;
+        }
+    }
+    const res = http.request(method, host, payload, { headers : headers, cookies : httpCookies });
     check(res, {
         'check http status' : (r) => {
             if (response === '{}' || !response.status) return true;
@@ -86,6 +102,32 @@ export default function () {
                 } else if (actualValue !== expectedValue) {
                     if(!headersError){
                         console.error(`${expectedHeader} has incorrect value. Expected: ${expectedValue}, Actual: ${actualValue}`);
+                    }
+                    return false;
+                }
+            }
+            return true;
+        },
+        'check http cookies': (r) => {
+            if (response === '{}' || !response.cookies) return true;
+            let httpCookiesResponse = {};
+            if(cookies){
+                for (const [expectedCookie, expectedValue] of Object.entries(cookies)) {
+                    httpCookiesResponse[expectedCookie] = expectedValue.value;
+                }
+            }
+            for (const [expectedCookie, expectedValue] of Object.entries(httpCookiesResponse)) {
+                const actualValue = res.cookies[expectedCookie];
+                if (actualValue === undefined) {
+                    if (!cookiesError) {
+                        cookiesError = true;
+                        console.error(`${expectedCookie} not found in the response cookies`);
+                    }
+                    return false;
+                } else if (actualValue !== expectedValue) {
+                    if (!cookiesError) {
+                        cookiesError = true;
+                        console.error(`${expectedCookie} has incorrect value. Expected: ${expectedValue}, Actual: ${actualValue}`);
                     }
                     return false;
                 }

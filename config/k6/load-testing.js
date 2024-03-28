@@ -9,6 +9,7 @@ let host = null;
 let method = null;
 let payload = null;
 let headers = null;
+let cookies = null;
 let stagesJSON = __ENV.stages || {};
 let responsePayload = null;
 let thresholds = '{}';
@@ -25,10 +26,11 @@ if (__ENV.request) {
     req_vars = JSON.parse(req_vars);
     host = req_vars.host;
     method = req_vars.method;
-    if(req_vars.payload){
-        payload = req_vars.payload;
-    }
+    payload = req_vars.payload;
     headers = req_vars.headers;
+    if (req_vars.cookies)
+        cookies = JSON.parse(cookies)
+    else cookies = '{}'
 }
 
 if (__ENV.stages) {
@@ -48,7 +50,7 @@ thresholds.checks = ['rate>=1']
 
 export const options = {
     thresholds: thresholds,
-    stages: stagesJSON
+    stages: stagesJSON,
 }
 
 
@@ -59,7 +61,7 @@ function compareObjects(o1, o2) {
 }
 
 export default function () {
-    const res = http.request(method, host, payload, { headers : headers });
+    const res = http.request(method, host, payload, { headers : headers, cookies : cookies });
     check(res, {
         'check http status': (r) => {
             if (response === '{}' || !response.status) return true;
@@ -84,6 +86,26 @@ export default function () {
         'check http headers': (r) => {
             if (response === '{}' || !response.headers) return true;
             for (const [expectedHeader, expectedValue] of Object.entries(response.headers)) {
+                const actualValue = res.headers[expectedHeader];
+                if (actualValue === undefined) {
+                    if (!headersErrorNotFound) {
+                        headersErrorNotFound = true;
+                        console.error(`${expectedHeader} not found in the response headers`);
+                    }
+                    return false;
+                } else if (actualValue !== expectedValue) {
+                    if (!headersError) {
+                        headersError = true;
+                        console.error(`${expectedHeader} has incorrect value. Expected: ${expectedValue}, Actual: ${actualValue}`);
+                    }
+                    return false;
+                }
+            }
+            return true;
+        },
+        'check http cookies': (r) => {
+            if (response === '{}' || !response.cookies) return true;
+            for (const [expectedHeader, expectedValue] of Object.entries(cookies)) {
                 const actualValue = res.headers[expectedHeader];
                 if (actualValue === undefined) {
                     if (!headersErrorNotFound) {

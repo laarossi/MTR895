@@ -16,6 +16,7 @@ import com.projet.mtr895.app.entities.Request;
 import com.projet.mtr895.app.entities.TestCase;
 import com.projet.mtr895.app.entities.exec.ExecConfig;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -47,13 +48,13 @@ public class TestParser {
 
     public static Executor parseExecutor(TestCase testCase) throws Exception {
         Class<? extends Executor> executorClass = testExecutorsMap.get(testCase.getType());
-        if(executorClass == null)
+        if (executorClass == null)
             throw new Exception("Executor for the corresponding test type : " + testCase.getType() + " has not been found");
         return executorClass.getDeclaredConstructor().newInstance();
     }
 
     public static Request parseRequest(Map<String, Object> requestJSONMap) throws Exception {
-        if(requestJSONMap == null || requestJSONMap.isEmpty()){
+        if (requestJSONMap == null || requestJSONMap.isEmpty()) {
             throw new Exception("Missing request data, please provide a request configuration");
         }
 
@@ -71,28 +72,29 @@ public class TestParser {
         request.setHost(host);
         request.setMethod(method);
         request.setPayload(payload);
-        HashMap<String, Object> headers;
-        try{
-            headers = (HashMap<String, Object>) requestJSONMap.get("headers");
-        }catch (Exception e){
-            LOG.error(e.getMessage());
-            throw new Exception("An unexpected error while parsing request headers");
-        }
-        if(headers != null)
-            for(Map.Entry<String, Object> entry : headers.entrySet())
+        HashMap<String, Object> headers = (HashMap<String, Object>) requestJSONMap.getOrDefault("headers", new HashMap<String, Object>());
+        HashMap<String, Map<String, Object>> cookies = (HashMap<String, Map<String, Object>>) requestJSONMap.getOrDefault("cookies", new HashMap<>());
+
+        if (headers != null)
+            for (Map.Entry<String, Object> entry : headers.entrySet())
                 request.getHeaders().putIfAbsent(entry.getKey(), (String) entry.getValue());
+
+        if(cookies != null)
+            for (Map.Entry<String,  Map<String, Object>> entry : cookies.entrySet())
+                request.getCookies().putIfAbsent(entry.getKey(), entry.getValue());
+
         return request;
     }
 
     public static ExecConfig parseExecConfig(TestCase testCase) throws Exception {
-        if(testCase == null)
+        if (testCase == null)
             throw new NullPointerException("TestCase object is null");
 
-        if(!TestLoader.isTypeValid(testCase.getType()))
+        if (!TestLoader.isTypeValid(testCase.getType()))
             throw new Exception("Type parameter required in the exec configuration");
 
         Class<?> execConfigurationParserClass = testConfigParsersMap.get(testCase.getType().toLowerCase());
-        if(execConfigurationParserClass == null)
+        if (execConfigurationParserClass == null)
             throw new IOException("ExecConfigurationParser not found for type [" + testCase.getType() + "]");
 
         ConfigParser configParser = (ConfigParser) execConfigurationParserClass.getDeclaredConstructor().newInstance();
